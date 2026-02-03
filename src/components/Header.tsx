@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { Search, Heart, ShoppingCart, Menu } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +15,10 @@ const Header = () => {
           {/* Left side: Logo and Categories */}
           <div className="flex items-center gap-6">
             {/* Logo */}
-            <Link href="/" className="etsy-logo text-[28px] text-etsy-orange font-bold tracking-tight">
+            <Link
+              href="/"
+              className="etsy-logo text-[28px] text-etsy-orange font-bold tracking-tight"
+            >
               Etsy
             </Link>
 
@@ -65,33 +68,55 @@ const Header = () => {
           <div className="flex items-center justify-center py-2.5">
             <ul className="flex items-center gap-8 overflow-x-auto scrollbar-hide">
               <li>
-                <Link 
-                  href="/gifts" 
+                <Link
+                  href="/gifts"
                   className="nav-item flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"
                 >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
                   </svg>
                   Gifts
                 </Link>
               </li>
               <li>
-                <Link href="#" className="nav-item text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap">
-                  Top 100 Galentine's Finds
+                <Link
+                  href="/best-of-valentine"
+                  className="nav-item text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                >
+                  Best of Valentine's Day
                 </Link>
               </li>
               <li>
-                <Link href="#" className="nav-item text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                <Link
+                  href="#"
+                  className="nav-item text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                >
                   Home Favourites
                 </Link>
               </li>
               <li>
-                <Link href="#" className="nav-item text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                <Link
+                  href="#"
+                  className="nav-item text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                >
                   Fashion Finds
                 </Link>
               </li>
               <li>
-                <Link href="#" className="nav-item text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap">
+                <Link
+                  href="#"
+                  className="nav-item text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"
+                >
                   Registry
                 </Link>
               </li>
