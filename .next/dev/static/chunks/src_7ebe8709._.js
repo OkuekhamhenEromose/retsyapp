@@ -3747,6 +3747,246 @@ const apiService = {
                 products: []
             };
         }
+    },
+    async getBestOfValentineData (params) {
+        try {
+            const query = params ? new URLSearchParams(params).toString() : '';
+            const response = await fetch(`${API_BASE_URL}/best-of-valentine/${query ? `?${query}` : ''}`, {
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) {
+                console.error('Failed to fetch Best of Valentine data:', response.status);
+                return this.getMockBestOfValentineData();
+            }
+            return response.json();
+        } catch  {
+            console.error('Network error fetching Best of Valentine data');
+            return this.getMockBestOfValentineData();
+        }
+    },
+    async getMockBestOfValentineData () {
+        await new Promise((resolve)=>setTimeout(resolve, 300));
+        return {
+            section: {
+                id: 1,
+                title: "Best of Valentine's Day",
+                description: "Picks you'll love",
+                section_type: "best_of_valentine"
+            },
+            categories: [
+                {
+                    id: 1,
+                    title: "Valentine's Day Cards",
+                    slug: "valentines-day-cards",
+                    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+                    products_count: 245,
+                    icon: undefined
+                },
+                {
+                    id: 2,
+                    title: "Valentine's Day Party Finds",
+                    slug: "valentines-day-party-finds",
+                    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+                    products_count: 156,
+                    icon: undefined
+                },
+                {
+                    id: 3,
+                    title: "Top 100: Galentine's Picks",
+                    slug: "galentines-picks",
+                    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+                    products_count: 100,
+                    icon: undefined
+                },
+                {
+                    id: 4,
+                    title: "Kid's Valentine Day Ideas",
+                    slug: "kids-valentine-ideas",
+                    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+                    products_count: 189,
+                    icon: undefined
+                },
+                {
+                    id: 5,
+                    title: "Personalised Jewellery",
+                    slug: "personalised-jewellery",
+                    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+                    products_count: 342,
+                    icon: undefined
+                }
+            ],
+            products: [
+                {
+                    id: 1,
+                    title: "Detailed Half-length Portrait,...",
+                    slug: "detailed-half-length-portrait",
+                    short_description: "Custom half-length portrait",
+                    price: 43.17,
+                    discount_price: undefined,
+                    discount_percentage: 0,
+                    final_price: 43.17,
+                    main: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=500&fit=crop",
+                    rating: 5.0,
+                    review_count: 271,
+                    is_featured: true,
+                    is_bestseller: false,
+                    is_deal: false,
+                    is_new_arrival: false,
+                    condition: "handmade",
+                    shop_name: "IwaKowalska",
+                    etsy_pick: true,
+                    freeDelivery: true,
+                    has_video: false
+                },
+                {
+                    id: 2,
+                    title: "Sylvie Heart Charm Hoops",
+                    slug: "sylvie-heart-charm-hoops",
+                    short_description: "Heart charm hoop earrings",
+                    price: 34.33,
+                    discount_price: undefined,
+                    discount_percentage: 0,
+                    final_price: 34.33,
+                    main: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=500&fit=crop",
+                    rating: 5.0,
+                    review_count: 3500,
+                    is_featured: true,
+                    is_bestseller: true,
+                    is_deal: false,
+                    is_new_arrival: false,
+                    condition: "handmade",
+                    shop_name: "Kateslittlestore",
+                    etsy_pick: false,
+                    freeDelivery: false,
+                    has_video: false
+                },
+                {
+                    id: 3,
+                    title: "Amethyst gold birthstone bracelet",
+                    slug: "amethyst-gold-birthstone-bracelet",
+                    short_description: "Amethyst birthstone gold bracelet",
+                    price: 70.09,
+                    discount_price: undefined,
+                    discount_percentage: 0,
+                    final_price: 70.09,
+                    main: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=500&fit=crop",
+                    rating: 4.9,
+                    review_count: 833,
+                    is_featured: false,
+                    is_bestseller: true,
+                    is_deal: false,
+                    is_new_arrival: true,
+                    condition: "handmade",
+                    shop_name: "Claudetteworters",
+                    etsy_pick: true,
+                    freeDelivery: false,
+                    has_video: false
+                },
+                {
+                    id: 4,
+                    title: "Personalised Groomsmen Bracelet",
+                    slug: "personalised-groomsmen-bracelet",
+                    short_description: "Personalized groomsmen bracelet",
+                    price: 17.81,
+                    discount_price: 12.46,
+                    discount_percentage: 30,
+                    final_price: 12.46,
+                    main: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=500&fit=crop",
+                    rating: 4.9,
+                    review_count: 14100,
+                    is_featured: true,
+                    is_bestseller: true,
+                    is_deal: true,
+                    is_new_arrival: false,
+                    condition: "handmade",
+                    shop_name: "CustomYourMoment",
+                    etsy_pick: false,
+                    freeDelivery: true,
+                    has_video: true
+                }
+            ],
+            related_searches: [
+                "custom embroidered sage green bows",
+                "ceramic pot mug",
+                "lucky is to have you",
+                "valentines day cards",
+                "classroom",
+                "family portrait",
+                "love lounge"
+            ],
+            filters: {
+                price_options: [
+                    {
+                        value: "any",
+                        label: "Any price"
+                    },
+                    {
+                        value: "under25",
+                        label: "Under $25"
+                    },
+                    {
+                        value: "25to50",
+                        label: "$25 to $50"
+                    },
+                    {
+                        value: "50to100",
+                        label: "$50 to $100"
+                    },
+                    {
+                        value: "over100",
+                        label: "Over $100"
+                    }
+                ],
+                sort_options: [
+                    {
+                        value: "relevance",
+                        label: "Relevance"
+                    },
+                    {
+                        value: "low_to_high",
+                        label: "Price: Low to High"
+                    },
+                    {
+                        value: "high_to_low",
+                        label: "Price: High to Low"
+                    },
+                    {
+                        value: "top_rated",
+                        label: "Top Rated"
+                    }
+                ],
+                shipping_options: [
+                    {
+                        value: "anywhere",
+                        label: "Anywhere"
+                    },
+                    {
+                        value: "US",
+                        label: "United States"
+                    },
+                    {
+                        value: "AU",
+                        label: "Australia"
+                    },
+                    {
+                        value: "CA",
+                        label: "Canada"
+                    },
+                    {
+                        value: "FR",
+                        label: "France"
+                    }
+                ]
+            },
+            current_filters: {
+                price: "any",
+                on_sale: false,
+                etsy_picks: false
+            }
+        };
     }
 };
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
