@@ -60,6 +60,10 @@ export interface Product {
   is_new_arrival: boolean;
   condition: string;
   color?: string | null; // Allow null
+  // Optional fields present in some API/mock payloads
+  shop_name?: string | null;
+  etsy_pick?: boolean;
+  has_video?: boolean;
   freeDelivery?: boolean;
   saleBadge?: string;
 }

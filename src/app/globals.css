@@ -2,79 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
-  --primary: #f1641e;
-  --primary-dark: #d35400;
-  --secondary: #f8f8f8;
-  --muted-foreground: #666;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-rgb: 0, 0, 0;
-    --primary: #f1641e;
-    --primary-dark: #ff8c42;
-    --secondary: #1a1a1a;
-    --muted-foreground: #999;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
   }
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* Custom utility classes */
 @layer utilities {
-  .text-foreground {
-    color: rgb(var(--foreground-rgb));
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
   
-  .bg-background {
-    background: rgb(var(--background-rgb));
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
   }
   
-  .text-muted-foreground {
-    color: var(--muted-foreground);
-  }
-  
-  .bg-primary {
-    background-color: var(--primary);
-  }
-  
-  .text-primary {
-    color: var(--primary);
-  }
-  
-  .bg-secondary {
-    background-color: var(--secondary);
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
   }
 }
 
 @layer components {
   .section-title {
     @apply text-2xl font-bold mb-6;
-    color: rgb(var(--foreground-rgb));
   }
   
   .category-card {
@@ -83,22 +94,22 @@ a {
   
   .pill-button {
     @apply px-6 py-3 rounded-full font-medium flex items-center transition-colors;
-    background-color: var(--primary);
+    background-color: #f1641e;
     color: white;
   }
   
   .pill-button:hover {
-    background-color: var(--primary-dark);
+    background-color: #d35400;
   }
   
   .outline-button {
     @apply px-6 py-3 border-2 rounded-full font-medium transition-colors;
-    border-color: var(--primary);
-    color: var(--primary);
+    border-color: #f1641e;
+    color: #f1641e;
   }
   
   .outline-button:hover {
-    background-color: var(--primary);
+    background-color: #f1641e;
     color: white;
   }
   
@@ -118,6 +129,14 @@ a {
   
   .text-price {
     @apply font-bold;
-    color: rgb(var(--foreground-rgb));
+  }
+  
+  .etsy-logo {
+    @apply text-2xl md:text-[28px] font-bold tracking-tight;
+    color: #f1641e;
+  }
+  
+  .nav-item {
+    @apply transition-colors hover:text-etsy-orange;
   }
 }

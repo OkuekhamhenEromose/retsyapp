@@ -3,7 +3,7 @@ import { Product } from '@/services/api';
 import Link from 'next/link';
 
 interface ValentinesProductCardProps extends Product {
-  shop_name?: string;
+  shop_name?: string | null;
   etsy_pick?: boolean;
   free_delivery?: boolean;
   has_video?: boolean;
@@ -22,6 +22,7 @@ const ValentinesProductCard = ({
   discount_percentage,
   free_delivery,
   has_video,
+  etsy_pick,
 }: ValentinesProductCardProps) => {
   return (
     <div className="group">
