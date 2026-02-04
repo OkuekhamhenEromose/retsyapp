@@ -7,7 +7,7 @@ __turbopack_context__.s([
     ()=>apiService
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
-const API_BASE_URL = ("TURBOPACK compile-time value", "http://localhost:8000/api") || "http://localhost:8000/api";
+const API_BASE_URL = ("TURBOPACK compile-time value", "http://localhost:8000/api") || "http://localhost:8000/api/estyecomapp";
 const USE_MOCK_DATA = ("TURBOPACK compile-time value", "true") === "true";
 const apiService = {
     // Get complete homepage data with improved error handling
@@ -618,20 +618,20 @@ const apiService = {
     },
     async getBestOfValentineData (params) {
         try {
-            const query = params ? new URLSearchParams(params).toString() : '';
-            const response = await fetch(`${API_BASE_URL}/best-of-valentine/${query ? `?${query}` : ''}`, {
-                cache: 'no-cache',
+            const query = params ? new URLSearchParams(params).toString() : "";
+            const response = await fetch(`${API_BASE_URL}/best-of-valentine/${query ? `?${query}` : ""}`, {
+                cache: "no-cache",
                 headers: {
-                    'Content-Type': 'application/json'
+                    "Content-Type": "application/json"
                 }
             });
             if (!response.ok) {
-                console.error('Failed to fetch Best of Valentine data:', response.status);
+                console.error("Failed to fetch Best of Valentine data:", response.status);
                 return this.getMockBestOfValentineData();
             }
             return response.json();
         } catch  {
-            console.error('Network error fetching Best of Valentine data');
+            console.error("Network error fetching Best of Valentine data");
             return this.getMockBestOfValentineData();
         }
     },

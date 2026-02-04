@@ -3061,7 +3061,7 @@ __turbopack_context__.s([
     "apiService",
     ()=>apiService
 ]);
-const API_BASE_URL = ("TURBOPACK compile-time value", "http://localhost:8000/api") || "http://localhost:8000/api";
+const API_BASE_URL = ("TURBOPACK compile-time value", "http://localhost:8000/api") || "http://localhost:8000/api/estyecomapp";
 const USE_MOCK_DATA = ("TURBOPACK compile-time value", "true") === "true";
 const apiService = {
     // Get complete homepage data with improved error handling
@@ -3672,20 +3672,20 @@ const apiService = {
     },
     async getBestOfValentineData (params) {
         try {
-            const query = params ? new URLSearchParams(params).toString() : '';
-            const response = await fetch(`${API_BASE_URL}/best-of-valentine/${query ? `?${query}` : ''}`, {
-                cache: 'no-cache',
+            const query = params ? new URLSearchParams(params).toString() : "";
+            const response = await fetch(`${API_BASE_URL}/best-of-valentine/${query ? `?${query}` : ""}`, {
+                cache: "no-cache",
                 headers: {
-                    'Content-Type': 'application/json'
+                    "Content-Type": "application/json"
                 }
             });
             if (!response.ok) {
-                console.error('Failed to fetch Best of Valentine data:', response.status);
+                console.error("Failed to fetch Best of Valentine data:", response.status);
                 return this.getMockBestOfValentineData();
             }
             return response.json();
         } catch  {
-            console.error('Network error fetching Best of Valentine data');
+            console.error("Network error fetching Best of Valentine data");
             return this.getMockBestOfValentineData();
         }
     },

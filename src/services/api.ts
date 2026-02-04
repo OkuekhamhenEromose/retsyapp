@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/estyecomapp";
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
 // Export all interfaces
@@ -801,25 +801,28 @@ export const apiService = {
     sort?: string;
   }): Promise<BestOfValentineData> {
     try {
-      const query = params ? new URLSearchParams(params as any).toString() : '';
+      const query = params ? new URLSearchParams(params as any).toString() : "";
       const response = await fetch(
-        `${API_BASE_URL}/best-of-valentine/${query ? `?${query}` : ''}`,
+        `${API_BASE_URL}/best-of-valentine/${query ? `?${query}` : ""}`,
         {
-          cache: 'no-cache',
+          cache: "no-cache",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!response.ok) {
-        console.error('Failed to fetch Best of Valentine data:', response.status);
+        console.error(
+          "Failed to fetch Best of Valentine data:",
+          response.status,
+        );
         return this.getMockBestOfValentineData();
       }
 
       return response.json();
     } catch {
-      console.error('Network error fetching Best of Valentine data');
+      console.error("Network error fetching Best of Valentine data");
       return this.getMockBestOfValentineData();
     }
   },
@@ -839,7 +842,8 @@ export const apiService = {
           id: 1,
           title: "Valentine's Day Cards",
           slug: "valentines-day-cards",
-          image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+          image:
+            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
           products_count: 245,
           icon: undefined,
         },
@@ -847,7 +851,8 @@ export const apiService = {
           id: 2,
           title: "Valentine's Day Party Finds",
           slug: "valentines-day-party-finds",
-          image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+          image:
+            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
           products_count: 156,
           icon: undefined,
         },
@@ -855,7 +860,8 @@ export const apiService = {
           id: 3,
           title: "Top 100: Galentine's Picks",
           slug: "galentines-picks",
-          image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+          image:
+            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
           products_count: 100,
           icon: undefined,
         },
@@ -863,7 +869,8 @@ export const apiService = {
           id: 4,
           title: "Kid's Valentine Day Ideas",
           slug: "kids-valentine-ideas",
-          image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+          image:
+            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
           products_count: 189,
           icon: undefined,
         },
@@ -871,7 +878,8 @@ export const apiService = {
           id: 5,
           title: "Personalised Jewellery",
           slug: "personalised-jewellery",
-          image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
+          image:
+            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&h=400&fit=crop",
           products_count: 342,
           icon: undefined,
         },
@@ -974,7 +982,7 @@ export const apiService = {
         "valentines day cards",
         "classroom",
         "family portrait",
-        "love lounge"
+        "love lounge",
       ],
       filters: {
         price_options: [
@@ -996,13 +1004,13 @@ export const apiService = {
           { value: "AU", label: "Australia" },
           { value: "CA", label: "Canada" },
           { value: "FR", label: "France" },
-        ]
+        ],
       },
       current_filters: {
         price: "any",
         on_sale: false,
         etsy_picks: false,
-      }
+      },
     };
   },
 };
