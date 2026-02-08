@@ -2,50 +2,116 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Etsy-inspired Design System */
+
 @layer base {
   :root {
+    /* Core backgrounds */
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 0 0% 13%;
+
+    /* Card surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 0 0% 13%;
+
+    /* Popover surfaces */
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --popover-foreground: 0 0% 13%;
+
+    /* Primary - Etsy Orange */
+    --primary: 24 100% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Light gray */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 13%;
+
+    /* Muted */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    /* Accent */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 13%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders */
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 24 100% 48%;
+
     --radius: 0.5rem;
+
+    /* Custom Etsy Colors */
+    --etsy-orange: 24 100% 48%;
+    --etsy-orange-hover: 24 100% 42%;
+    --hero-pink: 340 75% 95%;
+    --info-cream: 48 100% 94%;
+    --sale-green: 145 63% 42%;
+    --sale-green-light: 145 63% 92%;
+    --price-red: 0 72% 51%;
+    
+    /* Shadows */
+    --shadow-card: 0 2px 8px -2px hsl(0 0% 0% / 0.08);
+    --shadow-card-hover: 0 4px 12px -2px hsl(0 0% 0% / 0.12);
+    --shadow-button: 0 1px 3px hsl(0 0% 0% / 0.12);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --background: 0 0% 9%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 24 100% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 95%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 95%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 24 100% 55%;
+    
+    --hero-pink: 340 30% 20%;
+    --info-cream: 48 30% 15%;
+    --sale-green: 145 50% 35%;
+    --sale-green-light: 145 30% 18%;
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -53,90 +119,137 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
 
-/* Custom utility classes */
-@layer utilities {
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
   }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .line-clamp-1 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
-  }
-  
-  .line-clamp-2 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: Georgia, 'Times New Roman', serif;
   }
 }
 
 @layer components {
-  .section-title {
-    @apply text-2xl font-bold mb-6;
-  }
-  
-  .category-card {
-    @apply block transition-transform duration-300 hover:-translate-y-1;
-  }
-  
-  .pill-button {
-    @apply px-6 py-3 rounded-full font-medium flex items-center transition-colors;
-    background-color: #f1641e;
-    color: white;
-  }
-  
-  .pill-button:hover {
-    background-color: #d35400;
-  }
-  
-  .outline-button {
-    @apply px-6 py-3 border-2 rounded-full font-medium transition-colors;
-    border-color: #f1641e;
-    color: #f1641e;
-  }
-  
-  .outline-button:hover {
-    background-color: #f1641e;
-    color: white;
-  }
-  
-  .favorite-button {
-    @apply absolute top-3 right-3 p-2 rounded-full transition-colors backdrop-blur-sm;
-    background-color: rgba(255, 255, 255, 0.9);
-  }
-  
-  .favorite-button:hover {
-    background-color: white;
-  }
-  
-  .price-badge {
-    @apply px-3 py-1 rounded-full shadow-sm backdrop-blur-sm;
-    background-color: rgba(255, 255, 255, 0.9);
-  }
-  
-  .text-price {
-    @apply font-bold;
-  }
-  
   .etsy-logo {
-    @apply text-2xl md:text-[28px] font-bold tracking-tight;
-    color: #f1641e;
+    @apply text-primary font-bold tracking-tight;
+    font-family: Georgia, serif;
   }
-  
-  .nav-item {
-    @apply transition-colors hover:text-etsy-orange;
+
+  .product-card {
+    @apply rounded-lg overflow-hidden transition-shadow duration-200;
+    box-shadow: var(--shadow-card);
+  }
+
+  .product-card:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .category-card {
+    @apply rounded-xl overflow-hidden cursor-pointer transition-transform duration-200;
+  }
+
+  .category-card:hover {
+    @apply scale-[1.02];
+  }
+
+  .hero-section {
+    background-color: hsl(var(--hero-pink));
+  }
+
+  .info-section {
+    background-color: hsl(var(--info-cream));
+  }
+
+  .sale-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold;
+    background-color: hsl(var(--sale-green-light));
+    color: hsl(var(--sale-green));
+  }
+
+  .price-badge {
+    @apply inline-flex items-center px-2 py-1 rounded-sm text-sm font-medium bg-background/90 backdrop-blur-sm;
+  }
+
+  .search-input {
+    @apply flex-1 border-2 border-border rounded-l-full py-3 px-5 text-base focus:outline-none focus:border-primary;
+  }
+
+  .search-button {
+    @apply p-3 rounded-full transition-colors;
+    background-color: hsl(var(--primary));
+  }
+
+  .search-button:hover {
+    background-color: hsl(var(--etsy-orange-hover));
+  }
+
+  .nav-link {
+    @apply text-sm font-medium text-foreground hover:underline underline-offset-4 transition-colors;
+  }
+
+  .section-title {
+    @apply text-2xl md:text-3xl font-semibold text-foreground mb-6;
+    font-family: Georgia, serif;
+  }
+
+  .pill-button {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background text-sm font-medium hover:shadow-md transition-all cursor-pointer;
+  }
+
+  .cta-button {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-full bg-foreground text-background font-medium text-sm hover:opacity-90 transition-opacity;
+  }
+
+  .outline-button {
+    @apply inline-flex items-center justify-center px-6 py-3 rounded-full border-2 border-foreground bg-transparent text-foreground font-medium text-sm hover:bg-foreground hover:text-background transition-colors;
+  }
+
+  .favorite-button {
+    @apply absolute top-3 right-3 p-2 rounded-full bg-background/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background;
+  }
+
+  .countdown-timer {
+    @apply inline-flex items-center gap-1 text-muted-foreground text-sm;
+  }
+}
+
+@layer utilities {
+  .text-price {
+    @apply font-semibold;
+    color: hsl(var(--foreground));
+  }
+
+  .text-price-original {
+    @apply line-through text-muted-foreground;
+  }
+
+  .text-sale {
+    color: hsl(var(--sale-green));
+  }
+
+  .bg-hero-pink {
+    background-color: hsl(var(--hero-pink));
+  }
+
+  .bg-info-cream {
+    background-color: hsl(var(--info-cream));
+  }
+
+  .bg-etsy-orange {
+    background-color: hsl(var(--etsy-orange));
+  }
+
+  .text-etsy-orange {
+    color: hsl(var(--etsy-orange));
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

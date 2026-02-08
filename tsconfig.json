@@ -39,7 +39,7 @@
     "src/**/*" // Make sure this includes your src directory
     ,
     ".next/dev/types/**/*.ts"
-  ],
+, "next.config.js"  ],
   "exclude": [
     "node_modules"
   ]
