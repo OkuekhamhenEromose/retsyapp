@@ -6,15 +6,14 @@ import DiscoverSmallShops from "@/components/home-favourites/DiscoverSmallShops"
 import HomeProductSection from "@/components/home-favourites/HomeProductSection";
 import DiscoverMore from "@/components/home-favourites/DiscoverMore";
 
-// Import images - use public folder or static imports
-import ceramicMug from "@/public/images/ceramic-mug.jpg";
-import crochetBlanket from "@/public/images/crochet-blanket.jpg";
-import linenSpotlight from "@/public/images/linen-spotlight.jpg";
-import vintageRack from "@/public/images/vintage-rack.jpg";
-import watchBox from "@/public/images/watch-box.jpg";
-import macrame from "@/public/images/macrame.jpg";
-import photoPillow from "@/public/images/photo-pillow.jpg";
-import necklaces from "@/public/images/necklaces.jpg";
+import ceramicMug from "@/assets/ceramic-mug.jpg";
+import crochetBlanket from "@/assets/crochet-blanket.jpg";
+import linenSpotlight from "@/assets/linen-spotlight.jpg";
+import vintageRack from "@/assets/vintage-rack.jpg";
+import watchBox from "@/assets/watch-box.jpg";
+import macrame from "@/assets/macrame.jpg";
+import photoPillow from "@/assets/photo-pillow.jpg";
+import necklaces from "@/assets/necklaces.jpg";
 
 const springLinensProducts = [
   {
@@ -165,7 +164,7 @@ const reorganisingProducts = [
   },
 ];
 
-export default function HomeFavourites() {
+const HomeFavourites = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -188,4 +187,6 @@ export default function HomeFavourites() {
       <Footer />
     </div>
   );
-}
+};
+
+export default HomeFavourites;

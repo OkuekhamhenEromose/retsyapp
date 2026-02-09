@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SlidersHorizontal, Check } from "lucide-react";
-import HomeProductCard from "./HomeProductCard";
+import HomeProductCard from "./HomePoductCard";
 import {
   Sheet,
   SheetContent,
