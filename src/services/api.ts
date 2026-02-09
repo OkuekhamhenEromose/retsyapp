@@ -130,6 +130,36 @@ export interface BestOfValentineData {
     etsy_picks: boolean;
   };
 }
+export interface HomeFavouritesData {
+  section: {
+    id: number;
+    title: string;
+    description: string;
+    section_type: string;
+  };
+  hero_categories: Array<{
+    title: string;
+    image: string;
+    slug: string;
+  }>;
+  home_categories: Category[];
+  small_shops: Array<{
+    name: string;
+    rating: number;
+    reviewCount: string;
+    images: string[];
+  }>;
+  spring_linens_products: Product[];
+  reorganizing_products: Product[];
+  discover_categories: Array<{
+    title: string;
+    image: string;
+    slug: string;
+  }>;
+  filters: {
+    price_options: Array<{ value: string; label: string }>;
+  };
+}
 
 export const apiService = {
   // Get complete homepage data with improved error handling
@@ -1010,6 +1040,267 @@ export const apiService = {
         price: "any",
         on_sale: false,
         etsy_picks: false,
+      },
+    };
+  },
+
+  async getHomeFavouritesData(): Promise<HomeFavouritesData> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/home-favourites/`, {
+        cache: "no-cache",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch home favourites data:", response.status);
+        return this.getMockHomeFavouritesData();
+      }
+
+      return response.json();
+    } catch {
+      console.error("Network error fetching home favourites data");
+      return this.getMockHomeFavouritesData();
+    }
+  },
+
+  async getMockHomeFavouritesData(): Promise<HomeFavouritesData> {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    return {
+      section: {
+        id: 1,
+        title: "Etsy's Guide to Home",
+        description:
+          "Discover original wall art, comfy bedding, unique lighting, and more from small shops.",
+        section_type: "home_favourites",
+      },
+      hero_categories: [
+        {
+          title: "Home Decor",
+          image:
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+          slug: "home-decor",
+        },
+        {
+          title: "Kitchen & Dining",
+          image:
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+          slug: "kitchen-dining",
+        },
+        {
+          title: "Furniture",
+          image:
+            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
+          slug: "furniture",
+        },
+        {
+          title: "Vintage Rugs",
+          image:
+            "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop",
+          slug: "vintage-rugs",
+        },
+        {
+          title: "Lighting",
+          image:
+            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
+          slug: "lighting",
+        },
+        {
+          title: "Bedding",
+          image:
+            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
+          slug: "bedding",
+        },
+      ],
+      home_categories: [
+        {
+          id: 1,
+          title: "Artisanal Dinnerware",
+          slug: "artisanal-dinnerware",
+          image:
+            "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&h=400&fit=crop",
+          products_count: 156,
+          category_type: "home_favourites",
+        },
+        {
+          id: 2,
+          title: "Outdoor Furniture & Decor",
+          slug: "outdoor-furniture-decor",
+          image:
+            "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=400&fit=crop",
+          products_count: 89,
+          category_type: "home_favourites",
+        },
+        {
+          id: 3,
+          title: "Garden Decor & Supplies",
+          slug: "garden-decor-supplies",
+          image:
+            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
+          products_count: 234,
+          category_type: "home_favourites",
+        },
+        {
+          id: 4,
+          title: "Personalised Home Decor",
+          slug: "personalised-home-decor",
+          image:
+            "https://images.unsplash.com/photo-1516724562728-afc824a36e84?w=400&h=400&fit=crop",
+          products_count: 112,
+          category_type: "home_favourites",
+        },
+        {
+          id: 5,
+          title: "Candles & Home Fragrance",
+          slug: "candles-home-fragrance",
+          image:
+            "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop",
+          products_count: 245,
+          category_type: "home_favourites",
+        },
+        {
+          id: 6,
+          title: "Vintage Home Decor",
+          slug: "vintage-home-decor",
+          image:
+            "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?w=400&h=400&fit=crop",
+          products_count: 189,
+          category_type: "home_favourites",
+        },
+      ],
+      small_shops: [
+        {
+          name: "OliveLaneInteriors",
+          rating: 5,
+          reviewCount: "100",
+          images: [
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
+          ],
+        },
+        {
+          name: "BrooxFurniture",
+          rating: 5,
+          reviewCount: "116",
+          images: [
+            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+          ],
+        },
+        {
+          name: "ForestlandLinen",
+          rating: 5,
+          reviewCount: "4,977",
+          images: [
+            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
+          ],
+        },
+        {
+          name: "MDTMobilier",
+          rating: 3,
+          reviewCount: "70",
+          images: [
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+          ],
+        },
+      ],
+      spring_linens_products: [
+        {
+          id: 1,
+          title: "Linen Shower Curtain Livingroom Curtai...",
+          slug: "linen-shower-curtain",
+          short_description: "Linen shower curtain",
+          price: 39.0,
+          discount_price: undefined,
+          discount_percentage: 0,
+          final_price: 39.0,
+          main: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=500&fit=crop",
+          rating: 4.8,
+          review_count: 6900,
+          is_featured: true,
+          is_bestseller: true,
+          is_deal: false,
+          is_new_arrival: false,
+          condition: "new",
+          shop_name: "LinenByMN",
+          etsy_pick: true,
+          freeDelivery: false,
+          has_video: false,
+        },
+        // Add more products...
+      ],
+      reorganizing_products: [
+        {
+          id: 101,
+          title: "Spice Labels | Custom Handmade Vinta...",
+          slug: "spice-labels",
+          short_description: "Custom spice labels",
+          price: 4.5,
+          discount_price: undefined,
+          discount_percentage: 0,
+          final_price: 4.5,
+          main: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=500&fit=crop",
+          rating: 5.0,
+          review_count: 100,
+          is_featured: true,
+          is_bestseller: false,
+          is_deal: false,
+          is_new_arrival: true,
+          condition: "handmade",
+          shop_name: "OliveLaneInteriors",
+          etsy_pick: true,
+          freeDelivery: false,
+          has_video: false,
+        },
+        // Add more products...
+      ],
+      discover_categories: [
+        {
+          title: "Special Starts on Etsy",
+          image:
+            "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop",
+          slug: "special-starts",
+        },
+        {
+          title: "Global Seller Spotlight",
+          image:
+            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
+          slug: "global-seller",
+        },
+        {
+          title: "Vintage Home Decor",
+          image:
+            "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop",
+          slug: "vintage-home-decor",
+        },
+        {
+          title: "Explore Unique Wall Art",
+          image:
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+          slug: "unique-wall-art",
+        },
+      ],
+      filters: {
+        price_options: [
+          { value: "any", label: "Any price" },
+          { value: "under25", label: "Under USD 25" },
+          { value: "25to50", label: "USD 25 to USD 50" },
+          { value: "50to100", label: "USD 50 to USD 100" },
+          { value: "over100", label: "Over USD 100" },
+          { value: "custom", label: "Custom" },
+        ],
       },
     };
   },

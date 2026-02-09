@@ -31,6 +31,11 @@ interface HomeProductSectionProps {
   title: string;
   products: Product[];
 }
+interface HomeProductSectionProps {
+  title: string;
+  products: Product[];
+  priceOptions?: Array<{ value: string; label: string }>;
+}
 
 const priceOptions = [
   { value: "any", label: "Any price" },

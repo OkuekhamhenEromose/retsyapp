@@ -3,27 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 
-// Use Unsplash images or local public folder images
-const categories = [
-  { 
-    image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=800&fit=crop", 
-    label: "Special Starts on Etsy" 
-  },
-  { 
-    image: "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=800&h=800&fit=crop", 
-    label: "Global Seller Spotlight" 
-  },
-  { 
-    image: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w-800&h=800&fit=crop", 
-    label: "Vintage Home Decor" 
-  },
-  { 
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=800&fit=crop", 
-    label: "Explore Unique Wall Art" 
-  },
-];
+interface Category {
+  image: string;
+  label: string;
+}
 
-const DiscoverMore = () => {
+interface DiscoverMoreProps {
+  categories: Category[];
+}
+
+const DiscoverMore = ({ categories }: DiscoverMoreProps) => {
   return (
     <section className="container mx-auto px-4 py-12">
       <h2 className="text-2xl md:text-3xl font-serif text-center mb-8 underline underline-offset-4">

@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import HomeFavouritesHero from "@/components/home-favourites/HomeFavouritesHero";
@@ -5,188 +8,176 @@ import HomeFavouritesCategories from "@/components/home-favourites/HomeFavourite
 import DiscoverSmallShops from "@/components/home-favourites/DiscoverSmallShops";
 import HomeProductSection from "@/components/home-favourites/HomeProductSection";
 import DiscoverMore from "@/components/home-favourites/DiscoverMore";
+import { apiService, type HomeFavouritesData } from '@/services/api';
 
-import ceramicMug from "@/assets/ceramic-mug.jpg";
-import crochetBlanket from "@/assets/crochet-blanket.jpg";
-import linenSpotlight from "@/assets/linen-spotlight.jpg";
-import vintageRack from "@/assets/vintage-rack.jpg";
-import watchBox from "@/assets/watch-box.jpg";
-import macrame from "@/assets/macrame.jpg";
-import photoPillow from "@/assets/photo-pillow.jpg";
-import necklaces from "@/assets/necklaces.jpg";
+export default function HomeFavouritesPage() {
+  const [data, setData] = useState<HomeFavouritesData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-const springLinensProducts = [
-  {
-    image: crochetBlanket,
-    title: "Linen Shower Curtain Livingroom Curtai...",
-    rating: 4.8,
-    reviewCount: "6.9k",
-    shopName: "LinenByMN",
-    price: 39.00,
-    originalPrice: 60.00,
-    discount: "35% off",
-  },
-  {
-    image: linenSpotlight,
-    title: "Large linen waffle bath towel. Organic n...",
-    rating: 4.9,
-    reviewCount: "2.1k",
-    shopName: "ThingStories",
-    price: 41.37,
-    originalPrice: 68.94,
-    discount: "40% off",
-    freeDelivery: true,
-  },
-  {
-    image: photoPillow,
-    title: "Linen bedding set. King or Queen size d...",
-    rating: 4.9,
-    reviewCount: "13.4k",
-    shopName: "WonderLinen",
-    price: 194.25,
-    originalPrice: 388.50,
-    discount: "50% off",
-    freeDelivery: true,
-  },
-  {
-    image: ceramicMug,
-    title: "Washed Linen Duvet Cover Natural * Qu...",
-    rating: 4.9,
-    reviewCount: "13.5k",
-    shopName: "LinenMeStore",
-    price: 127.02,
-    freeDelivery: true,
-  },
-  {
-    image: vintageRack,
-    title: "Vintage Wooden Coat Rack Wall Mount...",
-    rating: 4.8,
-    reviewCount: "2.3k",
-    shopName: "VintageHome",
-    price: 45.00,
-  },
-  {
-    image: macrame,
-    title: "Natural Linen Table Runner Farmhouse...",
-    rating: 4.9,
-    reviewCount: "1.2k",
-    shopName: "LinenLove",
-    price: 28.50,
-    freeDelivery: true,
-  },
-  {
-    image: necklaces,
-    title: "Organic Cotton Bed Sheets Set Queen...",
-    rating: 4.7,
-    reviewCount: "856",
-    shopName: "OrganicBedding",
-    price: 89.99,
-    originalPrice: 119.99,
-    discount: "25% off",
-  },
-  {
-    image: watchBox,
-    title: "Linen Throw Blanket Soft Waffle Weav...",
-    rating: 4.9,
-    reviewCount: "3.4k",
-    shopName: "CozyLinens",
-    price: 52.00,
-  },
-];
+  useEffect(() => {
+    fetchHomeFavouritesData();
+  }, []);
 
-const reorganisingProducts = [
-  {
-    image: watchBox,
-    title: "Spice Labels | Custom Handmade Vinta...",
-    rating: 5.0,
-    reviewCount: "100",
-    shopName: "OliveLaneInteriors",
-    price: 4.50,
-  },
-  {
-    image: ceramicMug,
-    title: "Drawer Organizer for clothing, washable...",
-    rating: 4.9,
-    reviewCount: "2.2k",
-    shopName: "WarmGreyCompany",
-    price: 14.30,
-  },
-  {
-    image: vintageRack,
-    title: "Wooden Cable Holder Mahogany Walnut...",
-    rating: 4.9,
-    reviewCount: "8.2k",
-    shopName: "Hardwoodcase",
-    price: 24.64,
-    originalPrice: 28.99,
-    discount: "15% off",
-  },
-  {
-    image: macrame,
-    title: "Leather Loop Hooks household storage ...",
-    rating: 4.9,
-    reviewCount: "8.7k",
-    shopName: "Keyaiira",
-    price: 15.99,
-  },
-  {
-    image: photoPillow,
-    title: "Wooden Desk Organizer Office Supplie...",
-    rating: 4.8,
-    reviewCount: "1.5k",
-    shopName: "WoodCraft",
-    price: 32.00,
-  },
-  {
-    image: crochetBlanket,
-    title: "Fabric Storage Baskets Set of 3 Organ...",
-    rating: 4.7,
-    reviewCount: "2.8k",
-    shopName: "HomeOrganize",
-    price: 24.99,
-    freeDelivery: true,
-  },
-  {
-    image: necklaces,
-    title: "Wall Mounted Key Holder with Shelf Ma...",
-    rating: 4.9,
-    reviewCount: "945",
-    shopName: "ModernWood",
-    price: 38.50,
-  },
-  {
-    image: linenSpotlight,
-    title: "Closet Dividers Wooden Custom Labels...",
-    rating: 4.8,
-    reviewCount: "672",
-    shopName: "TidyHome",
-    price: 12.99,
-  },
-];
+  const fetchHomeFavouritesData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('Fetching Home Favourites data...');
+      const homeFavouritesData = await apiService.getHomeFavouritesData();
+      console.log('Home Favourites data loaded:', homeFavouritesData);
+      
+      setData(homeFavouritesData);
+      
+    } catch (err: any) {
+      console.error('Error fetching Home Favourites data:', err);
+      setError('We encountered an issue loading the page. Showing demo data instead.');
+      
+      // Fallback to mock data
+      try {
+        const mockData = await apiService.getMockHomeFavouritesData();
+        setData(mockData);
+      } catch (mockError) {
+        console.error('Failed to load mock data:', mockError);
+        setError('Failed to load any data. Please check your connection.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const HomeFavourites = () => {
+  if (loading && !data) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-etsy-orange mx-auto"></div>
+            <p className="mt-4 text-gray-600 text-sm">Loading Home Favourites...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-md p-6">
+            <div className="text-etsy-orange text-4xl mb-4">⚠️</div>
+            <p className="text-gray-700 mb-4">
+              {error || 'Failed to load Home Favourites data'}
+            </p>
+            <button 
+              onClick={fetchHomeFavouritesData}
+              className="px-6 py-2.5 bg-etsy-orange text-white rounded-full hover:bg-orange-600 transition-colors text-sm font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Transform data for components
+  const heroCategories = data.hero_categories.map(cat => ({
+    image: cat.image,
+    label: cat.title
+  }));
+
+  const homeCategories = data.home_categories.map(cat => ({
+    image: cat.image,
+    label: cat.title
+  }));
+
+  const discoverCategories = data.discover_categories.map(cat => ({
+    image: cat.image,
+    label: cat.title
+  }));
+
+  // Transform products for HomeProductSection
+  const springLinensProducts = data.spring_linens_products.map(product => ({
+    image: product.main,
+    title: product.title,
+    rating: product.rating,
+    reviewCount: product.review_count.toLocaleString() + (product.review_count > 1000 ? 'k' : ''),
+    shopName: product.shop_name || 'Unknown Shop',
+    price: product.price,
+    originalPrice: product.discount_price ? product.price : undefined,
+    discount: product.discount_price ? `${product.discount_percentage}% off` : undefined,
+    freeDelivery: product.freeDelivery || false,
+    isEtsyPick: product.etsy_pick || false,
+  }));
+
+  const reorganizingProducts = data.reorganizing_products.map(product => ({
+    image: product.main,
+    title: product.title,
+    rating: product.rating,
+    reviewCount: product.review_count.toLocaleString() + (product.review_count > 1000 ? 'k' : ''),
+    shopName: product.shop_name || 'Unknown Shop',
+    price: product.price,
+    originalPrice: product.discount_price ? product.price : undefined,
+    discount: product.discount_price ? `${product.discount_percentage}% off` : undefined,
+    freeDelivery: product.freeDelivery || false,
+    isEtsyPick: product.etsy_pick || false,
+  }));
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <main>
-        <HomeFavouritesHero />
-        <HomeFavouritesCategories />
-        <DiscoverSmallShops />
+      <main className="animate-fade-in">
+        {error && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+            <div className="container mx-auto">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <span className="text-yellow-400">⚠️</span>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">{error}</p>
+                </div>
+                <button 
+                  onClick={fetchHomeFavouritesData}
+                  className="ml-auto text-sm font-medium text-yellow-700 hover:text-yellow-600"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <HomeFavouritesHero 
+          title={data.section.title}
+          description={data.section.description}
+          categories={heroCategories}
+        />
+        
+        <HomeFavouritesCategories categories={homeCategories} />
+        
+        <DiscoverSmallShops shops={data.small_shops} />
+        
         <HomeProductSection 
           title="Spring-ready linens" 
-          products={springLinensProducts} 
+          products={springLinensProducts}
+          priceOptions={data.filters.price_options}
         />
+        
         <HomeProductSection 
           title="Unique finds for reorganising" 
-          products={reorganisingProducts} 
+          products={reorganizingProducts}
+          priceOptions={data.filters.price_options}
         />
-        <DiscoverMore />
+        
+        <DiscoverMore categories={discoverCategories} />
       </main>
       
       <Footer />
     </div>
   );
-};
-
-export default HomeFavourites;
+}

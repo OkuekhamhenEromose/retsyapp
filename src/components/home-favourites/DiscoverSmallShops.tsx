@@ -5,54 +5,18 @@ import Image from "next/image";
 import Link from "next/link";
 
 // Use Unsplash images
-const shops = [
-  {
-    name: "OliveLaneInteriors",
-    rating: 5,
-    reviewCount: "100",
-    images: [
-      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop"
-    ],
-  },
-  {
-    name: "BrooxFurniture",
-    rating: 5,
-    reviewCount: "116",
-    images: [
-      "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop"
-    ],
-  },
-  {
-    name: "ForestlandLinen",
-    rating: 5,
-    reviewCount: "4,977",
-    images: [
-      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop"
-    ],
-  },
-  {
-    name: "MDTMobilier",
-    rating: 3,
-    reviewCount: "70",
-    images: [
-      "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop"
-    ],
-  },
-];
+interface Shop {
+  name: string;
+  rating: number;
+  reviewCount: string;
+  images: string[];
+}
 
-const DiscoverSmallShops = () => {
+interface DiscoverSmallShopsProps {
+  shops: Shop[];
+}
+
+const DiscoverSmallShops = ({ shops }: DiscoverSmallShopsProps) => {
   return (
     <section className="container mx-auto px-4 py-12">
       <h2 className="text-2xl md:text-3xl font-serif text-center mb-8">
