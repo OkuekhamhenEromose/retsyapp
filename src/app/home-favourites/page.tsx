@@ -50,7 +50,6 @@ export default function HomeFavouritesPage() {
   if (loading && !data) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-etsy-orange mx-auto"></div>
@@ -128,7 +127,6 @@ export default function HomeFavouritesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       
       <main className="animate-fade-in">
         {error && (
@@ -177,7 +175,6 @@ export default function HomeFavouritesPage() {
         <DiscoverMore categories={discoverCategories} />
       </main>
       
-      <Footer />
     </div>
   );
 }

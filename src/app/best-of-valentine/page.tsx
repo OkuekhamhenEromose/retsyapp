@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import ValentinesCategoryPicks from "@/components/valentines/ValentinesCategoryPicks";
 import ValentinesFilters from "@/components/valentines/ValentinesFilters";
 import ValentinesProductGrid from "@/components/valentines/ValentinesProductGrid";
@@ -49,13 +47,11 @@ const BestOfValentines = () => {
   if (loading && !data) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-etsy-orange"></div>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -63,7 +59,6 @@ const BestOfValentines = () => {
   if (!data) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
         <div className="container mx-auto px-4 py-8 text-center">
           <p className="text-gray-600">Failed to load data. Please try again.</p>
           <button 
@@ -73,14 +68,12 @@ const BestOfValentines = () => {
             Retry
           </button>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
       
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
@@ -113,7 +106,6 @@ const BestOfValentines = () => {
         <ValentinesRelatedSearches searches={data.related_searches} />
       </main>
       
-      <Footer />
     </div>
   );
 };

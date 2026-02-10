@@ -3,35 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 
-// Use Unsplash images
-const categories = [
-  { 
-    image: "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&h=400&fit=crop", 
-    label: "Artisanal Dinnerware" 
-  },
-  { 
-    image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=400&fit=crop", 
-    label: "Outdoor Furniture & Decor" 
-  },
-  { 
-    image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop", 
-    label: "Garden Decor & Supplies" 
-  },
-  { 
-    image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop", 
-    label: "Personalised Home Decor" 
-  },
-  { 
-    image: "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop", 
-    label: "Candles & Home Fragrance" 
-  },
-  { 
-    image: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop", 
-    label: "Vintage Home Decor" 
-  },
-];
+interface Category {
+  image: string;
+  label: string;
+}
 
-const HomeFavouritesCategories = () => {
+interface HomeFavouritesCategoriesProps {
+  categories: Category[];
+}
+
+const HomeFavouritesCategories = ({ categories }: HomeFavouritesCategoriesProps) => {
   return (
     <section className="container mx-auto px-4 py-12 -mt-16">
       <div className="grid grid-cols-3 md:grid-cols-6 gap-6">

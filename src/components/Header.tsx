@@ -77,7 +77,7 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link href="/best-of-valentines" className="text-sm font-medium text-foreground hover:underline whitespace-nowrap">
+              <Link href="/best-of-valentine" className="text-sm font-medium text-foreground hover:underline whitespace-nowrap">
                 Best of Valentine's Day
               </Link>
             </li>

@@ -60,7 +60,7 @@ export default function Home() {
   if (loading && !homepageData) {
     return (
       <div className="min-h-screen bg-white flex flex-col">
-        <Header />
+        
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-etsy-orange mx-auto"></div>
@@ -132,7 +132,7 @@ export default function Home() {
         <Subscribe />
       </main>
       
-      <Footer />
+      
     </div>
   );
 }
