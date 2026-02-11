@@ -161,6 +161,69 @@ export interface HomeFavouritesData {
   };
 }
 
+export interface FashionFindsData {
+  hero_title: string;
+  hero_description: string;
+  hero_categories: Category[];
+  shops_we_love: FashionShop[];
+  personalised_clothes_products: Product[];
+  unique_handbags_products: Product[];
+  personalised_jewellery_products: Product[];
+  promo_cards: FashionPromoCard[];
+  trending: FashionTrending[];
+  discover_more: FashionDiscover[];
+  filters: {
+    price_options: Array<{ value: string; label: string }>;
+  };
+}
+
+export interface FashionShop {
+  id: number;
+  name: string;
+  slug: string;
+  rating: number;
+  review_count: number;
+  display_name: string;
+  description?: string;
+  logo?: string;
+  cover_image?: string;
+  featured_products_preview: Product[];
+  order: number;
+  is_featured: boolean;
+}
+
+export interface FashionPromoCard {
+  id: number;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  image: string;
+  button_text: string;
+  button_url: string;
+  order: number;
+  is_active: boolean;
+}
+
+export interface FashionTrending {
+  id: number;
+  title: string;
+  subtitle?: string;
+  description: string;
+  image: string;
+  button_text: string;
+  button_url: string;
+  is_active: boolean;
+}
+
+export interface FashionDiscover {
+  id: number;
+  title: string;
+  image: string;
+  url: string;
+  order: number;
+  is_active: boolean;
+}
+
 export const apiService = {
   // Get complete homepage data with improved error handling
   async getHomepageData(): Promise<HomepageData> {
@@ -1292,6 +1355,393 @@ export const apiService = {
           slug: "unique-wall-art",
         },
       ],
+      filters: {
+        price_options: [
+          { value: "any", label: "Any price" },
+          { value: "under25", label: "Under USD 25" },
+          { value: "25to50", label: "USD 25 to USD 50" },
+          { value: "50to100", label: "USD 50 to USD 100" },
+          { value: "over100", label: "Over USD 100" },
+          { value: "custom", label: "Custom" },
+        ],
+      },
+    };
+  },
+  // Add to the apiService object in api.ts
+  async getFashionFindsData(): Promise<FashionFindsData> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/fashion-finds/`, {
+        cache: "no-cache",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch fashion finds data:", response.status);
+        return this.getMockFashionFindsData();
+      }
+
+      return response.json();
+    } catch {
+      console.error("Network error fetching fashion finds data");
+      return this.getMockFashionFindsData();
+    }
+  },
+
+  async getMockFashionFindsData(): Promise<FashionFindsData> {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // Mock data that matches the UI
+    return {
+      hero_title: "Etsy's Guide to Fashion",
+      hero_description:
+        "From custom clothing to timeless jewellery, everything you need to upgrade your wardrobe.",
+
+      hero_categories: [
+        {
+          id: 1,
+          title: "Women's Clothing",
+          slug: "womens-clothing",
+          image:
+            "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=400&fit=crop",
+          products_count: 1245,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 2,
+          title: "Men's Clothing",
+          slug: "mens-clothing",
+          image:
+            "https://images.unsplash.com/photo-1520975916090-3105956dac38?w=400&h=400&fit=crop",
+          products_count: 845,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 3,
+          title: "Kids & Baby Clothing",
+          slug: "kids-baby-clothing",
+          image:
+            "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&h=400&fit=crop",
+          products_count: 567,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 4,
+          title: "Free Delivery: Cosy Knits",
+          slug: "cosy-knits",
+          image:
+            "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=400&fit=crop",
+          products_count: 234,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 5,
+          title: "Personalised Tees & Sweatshirts",
+          slug: "personalised-tees-sweatshirts",
+          image:
+            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop",
+          products_count: 892,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 6,
+          title: "Jackets & Coats",
+          slug: "jackets-coats",
+          image:
+            "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=400&fit=crop",
+          products_count: 456,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 7,
+          title: "Hats & Beanies",
+          slug: "hats-beanies",
+          image:
+            "https://images.unsplash.com/photo-1521369909029-2afed882baee?w=400&h=400&fit=crop",
+          products_count: 189,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 8,
+          title: "Handbags",
+          slug: "handbags",
+          image:
+            "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=400&fit=crop",
+          products_count: 723,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 9,
+          title: "Bag Charms & Keyrings",
+          slug: "bag-charms-keyrings",
+          image:
+            "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=400&fit=crop",
+          products_count: 312,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 10,
+          title: "Hair Accessories",
+          slug: "hair-accessories",
+          image:
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop",
+          products_count: 478,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 11,
+          title: "Lounge & Sleepwear",
+          slug: "lounge-sleepwear",
+          image:
+            "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=400&fit=crop",
+          products_count: 265,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+        {
+          id: 12,
+          title: "Travel Must-Haves",
+          slug: "travel-must-haves",
+          image:
+            "https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?w=400&h=400&fit=crop",
+          products_count: 189,
+          icon: undefined,
+          category_type: "fashion_finds",
+        },
+      ],
+
+      shops_we_love: [
+        {
+          id: 1,
+          name: "SbriStudio",
+          slug: "sbristudio",
+          rating: 5,
+          review_count: 2841,
+          display_name: "Sbristudio",
+          description: "Handmade fashion items",
+          logo: "/media/shops/sbristudio.jpg",
+          cover_image: "/media/shops/sbristudio-cover.jpg",
+          featured_products_preview: [],
+          order: 0,
+          is_featured: true,
+        },
+        {
+          id: 2,
+          name: "Plexida",
+          slug: "plexida",
+          rating: 5,
+          review_count: 2092,
+          display_name: "Plexida",
+          description: "Unique fashion accessories",
+          logo: "/media/shops/plexida.jpg",
+          cover_image: "/media/shops/plexida-cover.jpg",
+          featured_products_preview: [],
+          order: 1,
+          is_featured: true,
+        },
+        {
+          id: 3,
+          name: "GemBlue",
+          slug: "gemblue",
+          rating: 5,
+          review_count: 2473,
+          display_name: "GemBlue",
+          description: "Jewellery and accessories",
+          logo: "/media/shops/gemblue.jpg",
+          cover_image: "/media/shops/gemblue-cover.jpg",
+          featured_products_preview: [],
+          order: 2,
+          is_featured: true,
+        },
+        {
+          id: 4,
+          name: "LetterParty",
+          slug: "letterparty",
+          rating: 5,
+          review_count: 273,
+          display_name: "LetterParty",
+          description: "Personalised fashion items",
+          logo: "/media/shops/letterparty.jpg",
+          cover_image: "/media/shops/letterparty-cover.jpg",
+          featured_products_preview: [],
+          order: 3,
+          is_featured: true,
+        },
+      ],
+
+      personalised_clothes_products: [
+        {
+          id: 1,
+          title: "Custom Embroidered Portrait from Photo",
+          slug: "custom-embroidered-portrait",
+          short_description: "Custom embroidery portrait from your photo",
+          price: 15.48,
+          discount_price: 25.8,
+          discount_percentage: 40,
+          final_price: 15.48,
+          main: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=500&fit=crop",
+          rating: 4.7,
+          review_count: 3200,
+          is_featured: true,
+          is_bestseller: true,
+          is_deal: true,
+          is_new_arrival: false,
+          condition: "handmade",
+          color: "White",
+          shop_name: "TypeCityCo",
+          etsy_pick: true,
+          freeDelivery: false,
+          has_video: false,
+        },
+        // Add more products as needed...
+      ],
+
+      unique_handbags_products: [
+        {
+          id: 101,
+          title: "Black Handwoven Leather Purse - Adjustable",
+          slug: "black-handwoven-leather-purse",
+          short_description: "Handwoven leather purse with adjustable strap",
+          price: 75.0,
+          discount_price: undefined,
+          discount_percentage: 0,
+          final_price: 75.0,
+          main: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400&h=500&fit=crop",
+          rating: 4.8,
+          review_count: 892,
+          is_featured: true,
+          is_bestseller: false,
+          is_deal: false,
+          is_new_arrival: false,
+          condition: "handmade",
+          color: "Black",
+          shop_name: "LeatherCraftCo",
+          etsy_pick: true,
+          freeDelivery: true,
+          has_video: false,
+        },
+        // Add more products as needed...
+      ],
+
+      personalised_jewellery_products: [
+        {
+          id: 201,
+          title: "Personalized gold plated secret locket necklace",
+          slug: "personalized-gold-locket",
+          short_description: "Gold plated secret locket necklace",
+          price: 221.56,
+          discount_price: undefined,
+          discount_percentage: 0,
+          final_price: 221.56,
+          main: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=500&fit=crop",
+          rating: 4.9,
+          review_count: 186,
+          is_featured: true,
+          is_bestseller: true,
+          is_deal: false,
+          is_new_arrival: false,
+          condition: "handmade",
+          color: "Gold",
+          shop_name: "Isabellebshop",
+          etsy_pick: true,
+          freeDelivery: true,
+          has_video: false,
+        },
+        // Add more products as needed...
+      ],
+
+      promo_cards: [
+        {
+          id: 1,
+          title: "Elevate your everyday jewellery",
+          subtitle: "Discover unique pieces",
+          description: "Find jewellery that complements your style",
+          image:
+            "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&h=400&fit=crop",
+          button_text: "Shop now",
+          button_url: "/jewellery",
+          order: 0,
+          is_active: true,
+        },
+        {
+          id: 2,
+          title: "The Charm Shop",
+          subtitle: "Personalised charms",
+          description: "Create your own charm collection",
+          image:
+            "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&h=400&fit=crop",
+          button_text: "Shop now",
+          button_url: "/charms",
+          order: 1,
+          is_active: true,
+        },
+      ],
+
+      trending: [
+        {
+          id: 1,
+          title: "Trending now: Burgundy hues",
+          subtitle: "Winter collection",
+          description:
+            "Jump into one of our favourite colours for winter. The deep shade will bring a moody vibe to any outfit as we move into chillier temperatures.",
+          image:
+            "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&h=600&fit=crop",
+          button_text: "Try it out",
+          button_url: "/trending/burgundy",
+          is_active: true,
+        },
+      ],
+
+      discover_more: [
+        {
+          id: 1,
+          title: "Special Starts on Etsy",
+          image:
+            "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop",
+          url: "/special-starts",
+          order: 0,
+          is_active: true,
+        },
+        {
+          id: 2,
+          title: "The Linen Shop",
+          image:
+            "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=400&fit=crop",
+          url: "/linen-shop",
+          order: 1,
+          is_active: true,
+        },
+        {
+          id: 3,
+          title: "The Personalisation Shop",
+          image:
+            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop",
+          url: "/personalisation-shop",
+          order: 2,
+          is_active: true,
+        },
+        {
+          id: 4,
+          title: "Etsy's Guide to Vintage",
+          image:
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+          url: "/vintage-guide",
+          order: 3,
+          is_active: true,
+        },
+      ],
+
       filters: {
         price_options: [
           { value: "any", label: "Any price" },

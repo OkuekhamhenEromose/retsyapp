@@ -87,7 +87,7 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link href="#" className="text-sm font-medium text-foreground hover:underline whitespace-nowrap">
+              <Link href="/fashion-finds" className="text-sm font-medium text-foreground hover:underline whitespace-nowrap">
                 Fashion Finds
               </Link>
             </li>
