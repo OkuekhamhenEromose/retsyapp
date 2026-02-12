@@ -56,9 +56,9 @@ const Header = () => {
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Heart className="h-6 w-6 text-foreground" />
             </button>
-            <button className="hidden md:flex p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <Link href="/gift-finder" className="hidden md:flex p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Gift className="h-6 w-6 text-foreground" />
-            </button>
+            </Link>
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
               <ShoppingCart className="h-6 w-6 text-foreground" />
             </button>
@@ -92,7 +92,7 @@ const Header = () => {
               </Link>
             </li>
             <li>
-              <Link href="#" className="text-sm font-medium text-foreground hover:underline whitespace-nowrap">
+              <Link href="/registry" className="text-sm font-medium text-foreground hover:underline whitespace-nowrap">
                 Registry
               </Link>
             </li>
