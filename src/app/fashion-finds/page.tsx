@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Header from "@/components/Header";
+// import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FashionGuideHero from "@/components/fashion/FashionGuideHero";
 import FashionShopsWeLove from "@/components/fashion/FashionShopsWeLove";
@@ -47,7 +47,7 @@ const FashionFinds = () => {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        {/* <Header /> */}
         <main className="container mx-auto px-4 py-10 text-center">
           <h1 className="text-2xl font-serif text-red-600 mb-4">Error</h1>
           <p className="text-muted-foreground">{error || "Failed to load data"}</p>
@@ -65,7 +65,7 @@ const FashionFinds = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      {/* <Header /> */}
       <main>
         <FashionGuideHero 
           title={data.hero_title}

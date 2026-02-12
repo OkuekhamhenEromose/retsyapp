@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-import Header from "../components/Header";
+// import Header from "../components/Header";
 import HeroBanner from "../components/HeroBanner";
 import FeaturedInterests from "../components/FeaturedInterests";
 import DiscoverSection from "../components/DiscoverSection";
@@ -12,7 +12,7 @@ import TodaysDeals from "../components/TodaysDeals";
 import EditorsPicksVintage from "../components/EditorsPicksVintage";
 import WhatIsEtsy from "../components/WhatIsEtsy";
 import Subscribe from '@/components/Subscribe';
-import Footer from "../components/Footer";
+// import Footer from "../components/Footer";
 import { apiService } from '@/services/api';
 import type { HomepageData } from '@/services/api';
 
@@ -75,7 +75,7 @@ export default function Home() {
   if (!homepageData) {
     return (
       <div className="min-h-screen bg-white flex flex-col">
-        <Header />
+        {/* <Header /> */}
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md p-6">
             <div className="text-etsy-orange text-4xl mb-4">⚠️</div>
@@ -96,7 +96,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      {/* <Header /> */}
       
       <main className="animate-fade-in">
         {error && (

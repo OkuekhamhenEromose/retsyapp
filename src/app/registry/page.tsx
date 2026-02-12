@@ -1,5 +1,5 @@
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+// import Header from "@/components/Header";
+// import Footer from "@/components/Footer";
 import RegistryHero from "@/components/registry/RegistryHero";
 import RegistryTypes from "@/components/registry/RegistryTypes";
 import ReasonsToLove from "@/components/registry/ReasonsToLove";
@@ -13,14 +13,14 @@ export const metadata = {
 const RegistryPage = () => {
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      {/* <Header /> */}
       <main>
         <RegistryHero />
         <RegistryTypes />
         <ReasonsToLove />
         <RegistryFAQ />
       </main>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };
