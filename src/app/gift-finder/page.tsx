@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import GiftFinderHero from "@/components/gift-finder/GiftFinderHero";
 import GiftGrid from "@/components/gift-finder/GiftGrid";
 import BrowseByInterest from "@/components/gift-finder/BrowseByInterest";
@@ -12,7 +10,7 @@ import GetInspired from "@/components/gift-finder/GetInspired";
 import DiscoverPopularGifts from "@/components/gift-finder/DiscoverPopularGifts";
 import InspireInnerGifter from "@/components/gift-finder/InspireInnerGifter";
 import GiftTeaserAndCards from "@/components/gift-finder/GiftTeaserAndCards";
-import { giftFinderService, GiftFinderData } from '@/services/giftFinder';
+import { apiService, GiftFinderData } from '@/services/api';
 
 const GiftFinder = () => {
   const [data, setData] = useState<GiftFinderData | null>(null);
@@ -23,7 +21,9 @@ const GiftFinder = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const giftFinderData = await giftFinderService.getGiftFinderData();
+        console.log('Fetching gift finder data...');
+        const giftFinderData = await apiService.getGiftFinderData();
+        console.log('Gift finder data received:', giftFinderData);
         setData(giftFinderData);
       } catch (err) {
         console.error('Error fetching gift finder data:', err);
@@ -38,25 +38,22 @@ const GiftFinder = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
+      <div className="min-h-screen bg-white">
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-etsy-orange mx-auto mb-4"></div>
             <p className="text-gray-600">Loading gift ideas...</p>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
+      <div className="min-h-screen bg-white">
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
+          <div className="text-center max-w-md mx-auto px-4">
             <p className="text-red-600 mb-4">{error || 'Failed to load gift finder data'}</p>
             <button 
               onClick={() => window.location.reload()}
@@ -66,14 +63,12 @@ const GiftFinder = () => {
             </button>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-white">
       <main>
         <GiftFinderHero occasions={data.hero_occasions} />
         <GiftGrid giftItems={data.gift_grid_items} />
@@ -91,7 +86,6 @@ const GiftFinder = () => {
         />
         <GiftTeaserAndCards />
       </main>
-      <Footer />
     </div>
   );
 };
