@@ -3,8 +3,12 @@
 import { Search, Heart, Gift, ShoppingCart, Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import CategoriesDropdown from "./CategoriesDropdown";
+import SignInModal from "./SignInModal"
 
 const Header = () => {
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
@@ -24,10 +28,16 @@ const Header = () => {
           </Link>
 
           {/* Categories Button */}
-          <button className="hidden md:flex items-center gap-2 text-sm font-medium text-foreground hover:underline">
-            <Menu className="h-4 w-4" />
-            Categories
-          </button>
+          <div className="relative">
+            <button
+              className="hidden md:flex items-center gap-2 text-sm font-medium text-foreground hover:underline"
+              onClick={() => setCategoriesOpen(!categoriesOpen)}
+            >
+              <Menu className="h-4 w-4" />
+              Categories
+            </button>
+            <CategoriesDropdown open={categoriesOpen} onClose={() => setCategoriesOpen(false)} />
+          </div>
 
           {/* Search Bar */}
           <div className="flex-1 flex items-center">
@@ -50,7 +60,10 @@ const Header = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-1">
-            <button className="hidden md:block px-3 py-2 text-sm font-medium text-foreground hover:underline">
+            <button
+              className="hidden md:block px-3 py-2 text-sm font-medium text-foreground hover:underline"
+              onClick={() => setSignInOpen(true)}
+            >
               Sign in
             </button>
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -59,9 +72,9 @@ const Header = () => {
             <Link href="/gift-finder" className="hidden md:flex p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Gift className="h-6 w-6 text-foreground" />
             </Link>
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
+            <Link href="/basket" className="p-2 hover:bg-gray-100 rounded-full transition-colors relative">
               <ShoppingCart className="h-6 w-6 text-foreground" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -99,6 +112,7 @@ const Header = () => {
           </ul>
         </div>
       </nav>
+      <SignInModal open={signInOpen} onOpenChange={setSignInOpen} />
     </header>
   );
 };
