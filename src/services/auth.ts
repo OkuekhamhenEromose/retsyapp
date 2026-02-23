@@ -91,37 +91,23 @@ class AuthService {
 
   async signIn(data: SignInData): Promise<AuthResponse> {
     try {
-      const payload: any = { password: data.password };
-
-      if (data.username) {
-        payload.username = data.username;
-      } else if (data.email) {
-        payload.username = data.email;
-      }
-
       const response = await apiService.fetchData<any>("/users/login/", {
         useCache: false,
         method: "POST",
-        body: payload, // No need for JSON.stringify - apiService handles it
+        body: data,
       });
 
       if (response.error) {
         return { error: response.error };
       }
-
+      this.user = response.user;
       this.setToken("authenticated");
-
-      const profile = await this.getProfile();
-      if (profile && !("error" in profile)) {
-        this.user = profile as User;
-      }
-
       this.notifyListeners();
 
-      return {
-        Message: response.Message || "Login successful",
-        user: this.user || undefined,
-      };
+       return {
+      Message: response.message || "Login successful",
+      user: response.user,
+    };
     } catch (error: any) {
       console.error("Sign in error:", error);
       return {
@@ -132,54 +118,22 @@ class AuthService {
 
   async register(data: RegisterData): Promise<AuthResponse> {
     try {
-      const payload = {
-        username: data.username || data.email.split("@")[0],
-        email: data.email,
-        password1: data.password1,
-        password2: data.password2,
-        fullname: data.fullname,
-        gender: data.gender || "",
-        phone: data.phone || "",
-      };
-
-      const response = await apiService.fetchData<any>("/users/register/", {
+      const response = await apiService.fetchData<any>("/users/register/",{
         useCache: false,
         method: "POST",
-        body: payload,
+        body: data,
       });
-
-      if (response.error) {
-        return { error: response.error };
+      if (response.error){
+        return {error: response.error}
       }
-
-      if (data.profile_pix && response.user?.id) {
-        await this.uploadProfileImage(response.user.id, data.profile_pix);
+      return{
+        Message: response.Message || "Registration successful! Please check your email.",
+        user: response.user,
       }
-
-      return {
-        Message:
-          response.Message ||
-          "Registration successful! Please check your email.",
-      };
-    } catch (error: any) {
-      console.error("Registration error:", error);
-
-      if (error.details) {
-        try {
-          const details = JSON.parse(error.details);
-          const firstError = Object.values(details)[0];
-          return {
-            error: Array.isArray(firstError)
-              ? firstError[0]
-              : String(firstError),
-          };
-        } catch {
+    
+        } catch (error: any) {
           return { error: error.message || "Registration failed" };
         }
-      }
-
-      return { error: error.message || "Registration failed" };
-    }
   }
 
   async updateProfile(profileData: Partial<User>): Promise<any> {
@@ -237,15 +191,7 @@ class AuthService {
 
       // Django's dashboard returns a welcome message
       // You might need to adjust this based on your actual response structure
-      return {
-        id: response.user?.id || 0,
-        username: response.user?.username || "",
-        email: response.user?.email || "",
-        fullname: response.fullname || response.user?.username || "",
-        gender: response.gender || "",
-        phone: response.phone || "",
-        profile_pix: response.profile_pix || "",
-      };
+      return response.user
     } catch (error: any) {
       return { error: error.message || "Failed to get profile" };
     }
