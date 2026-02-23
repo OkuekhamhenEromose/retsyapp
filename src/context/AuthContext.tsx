@@ -1,70 +1,101 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '@/services/auth';
+import { authService, User } from '@/services/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  userEmail: string | null;
-  username: string | null;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (email: string, password: string, fullname?: string) => Promise<{ success: boolean; error?: string }>;
+  user: User | null;
+  signIn: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (data: {
+    email: string;
+    password: string;
+    fullname: string;
+    gender?: string;
+    phone?: string;
+  }) => Promise<{ success: boolean; error?: string; message?: string }>;
   logout: () => Promise<void>;
-  getProfile: () => Promise<any>;
-  updateProfile: (data: any) => Promise<any>;
+  getProfile: () => Promise<User | { error: string }>;
+  updateProfile: (data: Partial<User>) => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Subscribe to auth service changes
+    const unsubscribe = authService.subscribe(() => {
+      setUser(authService.getUser());
+    });
+
     // Check authentication status on mount
-    const checkAuth = () => {
-      setIsAuthenticated(authService.isAuthenticated());
-      setUserEmail(authService.getUserEmail());
-      setUsername(authService.getUsername());
+    const checkAuth = async () => {
+      setIsLoading(true);
+      if (authService.isAuthenticated()) {
+        const profile = await authService.getProfile();
+        if (!('error' in profile)) {
+          setUser(profile as User);
+        }
+      }
       setIsLoading(false);
     };
     
     checkAuth();
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (username: string, password: string) => {
     try {
-      const result = await authService.signIn({ email, password });
+      const result = await authService.signIn({ username, password });
       
       if (result.error) {
         return { success: false, error: result.error };
       }
       
-      setIsAuthenticated(true);
-      setUserEmail(email);
-      setUsername(email.split('@')[0]);
+      if (result.user) {
+        setUser(result.user);
+      }
+      
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message || 'Sign in failed' };
     }
   };
 
-  const register = async (email: string, password: string, fullname?: string) => {
+  const signInWithEmail = async (email: string, password: string) => {
+    return signIn(email, password); // Django uses username field, but we can pass email
+  };
+
+  const register = async (data: {
+    email: string;
+    password: string;
+    fullname: string;
+    gender?: string;
+    phone?: string;
+  }) => {
     try {
       const result = await authService.register({
-        email,
-        password1: password,
-        password2: password,
-        fullname: fullname || email.split('@')[0],
+        username: data.email.split('@')[0],
+        email: data.email,
+        password1: data.password,
+        password2: data.password,
+        fullname: data.fullname,
+        gender: data.gender || '',
+        phone: data.phone || '',
       });
       
       if (result.error) {
         return { success: false, error: result.error };
       }
       
-      return { success: true };
+      return { success: true, message: result.Message };
     } catch (error: any) {
       return { success: false, error: error.message || 'Registration failed' };
     }
@@ -72,17 +103,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     await authService.logout();
-    setIsAuthenticated(false);
-    setUserEmail(null);
-    setUsername(null);
+    setUser(null);
   };
 
   const getProfile = async () => {
     return await authService.getProfile();
   };
 
-  const updateProfile = async (data: any) => {
-    return await authService.updateProfile(data);
+  const updateProfile = async (data: Partial<User>) => {
+    const result = await authService.updateProfile(data);
+    return result;
   };
 
   // Don't render children until we've checked authentication status
@@ -92,10 +122,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{ 
-      isAuthenticated, 
-      userEmail, 
-      username,
-      signIn, 
+      isAuthenticated: !!user,
+      user,
+      signIn,
+      signInWithEmail,
       register, 
       logout,
       getProfile,

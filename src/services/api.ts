@@ -444,6 +444,64 @@ const apiCache = new ApiCache();
 
 // ========== API SERVICE ==========
 export const apiService = {
+  async login(username: string, password: string): Promise<any> {
+    const response = await this.fetchWithRetry(`${API_BASE_URL}/users/login/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+      credentials: "include", // Important for cookies
+    });
+
+    return response.json();
+  },
+
+  async register(userData: any): Promise<any> {
+    const response = await this.fetchWithRetry(
+      `${API_BASE_URL}/users/register/`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+        credentials: "include",
+      },
+    );
+
+    return response.json();
+  },
+
+  async logout(): Promise<any> {
+    const response = await this.fetchWithRetry(
+      `${API_BASE_URL}/users/logout/`,
+      {
+        method: "POST",
+        credentials: "include",
+      },
+    );
+
+    return response.json();
+  },
+
+  async getDashboard(): Promise<any> {
+    return this.fetchData("/users/dashboard/", {
+      cacheKey: "dashboard",
+      cacheTTL: 60000, // 1 minute
+    });
+  },
+
+  async updateProfile(profileData: any): Promise<any> {
+    const response = await this.fetchWithRetry(
+      `${API_BASE_URL}/users/update/`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profileData),
+        credentials: "include",
+      },
+    );
+
+    return response.json();
+  },
+
   // Helper method for fetch with timeout and retry
   async fetchWithRetry(
     url: string,
@@ -486,9 +544,20 @@ export const apiService = {
       cacheKey?: string;
       cacheTTL?: number;
       params?: Record<string, string>;
+      method?: string;
+      body?: any;
+      headers?: Record<string, string>;
     } = {},
   ): Promise<T> {
-    const { useCache = true, cacheKey, cacheTTL, params } = options;
+    const {
+      useCache = true,
+      cacheKey,
+      cacheTTL,
+      params,
+      method = "GET",
+      body,
+      headers,
+    } = options;
 
     // Build URL with query params
     const queryString = params
@@ -497,7 +566,7 @@ export const apiService = {
     const url = `${API_BASE_URL}${endpoint}${queryString}`;
 
     // Check cache if enabled
-    if (useCache && cacheKey) {
+    if (useCache && cacheKey && method === "GET") {
       const cached = apiCache.get(cacheKey);
       if (cached) {
         console.log(`[Cache HIT] ${cacheKey}`);
@@ -512,8 +581,22 @@ export const apiService = {
     }
 
     try {
-      console.log(`[API Request] ${url}`);
-      const response = await this.fetchWithRetry(url);
+      console.log(`[API Request] ${method} ${url}`);
+      const fetchOptions: RequestInit = {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept-Encoding": "gzip, deflate",
+          ...headers,
+        },
+        credentials: "include", // Important for cookies
+      };
+
+      if (body) {
+        fetchOptions.body =
+          typeof body === "string" ? body : JSON.stringify(body);
+      }
+      const response = await this.fetchWithRetry(url, fetchOptions);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -527,7 +610,7 @@ export const apiService = {
       const data = await response.json();
 
       // Cache the response if caching is enabled
-      if (useCache && cacheKey) {
+      if (useCache && cacheKey && method === "GET") {
         apiCache.set(cacheKey, data, cacheTTL);
         console.log(`[Cache SET] ${cacheKey}`);
       }
