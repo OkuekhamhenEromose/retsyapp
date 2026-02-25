@@ -151,14 +151,22 @@ const Header = () => {
             </button>
             <CategoriesDropdown open={categoriesOpen} onClose={() => setCategoriesOpen(false)} />
           </div>
-          <form onSubmit={handleSearch} className="flex-1 flex h-[46px]">
-            <input type="text" placeholder="Search for" value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 rounded-l-full border-2 border-gray-900 border-r-0 pl-5 pr-3 text-sm text-gray-800 placeholder-gray-400 bg-white focus:outline-none" />
-            <button type="submit" aria-label="Search"
-              className="rounded-r-full bg-[#F1641E] hover:bg-[#d4571a] text-white px-5 flex items-center justify-center transition-colors shrink-0">
-              <Search className="h-5 w-5" />
-            </button>
+          <form onSubmit={handleSearch} className="flex-1 max-w-2xl">
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for"
+                className="w-full h-11 pl-4 pr-12 border-2 border-gray-300 rounded-full text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-gray-800 transition-colors bg-white"
+              />
+              <button
+                type="submit"
+                className="absolute right-0 h-11 w-12 flex items-center justify-center bg-[#F1641E] rounded-full hover:bg-[#d95518] transition-colors"
+              >
+                <Search size={18} className="text-white" />
+              </button>
+            </div>
           </form>
           <div className="flex items-center gap-1 shrink-0">
             {!isLoggedIn && (
