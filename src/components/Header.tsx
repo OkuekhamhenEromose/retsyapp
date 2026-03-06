@@ -226,7 +226,7 @@ const Header = () => {
           <ul className="flex items-center justify-center gap-7 py-2.5 overflow-x-auto scrollbar-hide">
             {[
               { href: "/gifts",           label: "Gifts",           icon: true  },
-              { href: "/best-of-easter",  label: "Best of Easter",  icon: false },
+              { href: "/best-of-valentine",  label: "Best of Valentine",  icon: false },
               { href: "/home-favourites", label: "Home Favourites", icon: false },
               { href: "/fashion-finds",   label: "Fashion Finds",   icon: false },
               { href: "/registry",        label: "Registry",        icon: false },

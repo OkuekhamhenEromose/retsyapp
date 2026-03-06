@@ -1135,9 +1135,10 @@ export const apiService = {
     };
   },
 
+  // Update the getMockHomeFavouritesData method
   async getMockHomeFavouritesData(): Promise<HomeFavouritesData> {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    // ... (keep your existing mock implementation)
+
     return {
       section: {
         id: 1,
@@ -1146,13 +1147,450 @@ export const apiService = {
           "Discover original wall art, comfy bedding, unique lighting, and more from small shops.",
         section_type: "home_favourites",
       },
-      hero_categories: [],
-      home_categories: [],
-      small_shops: [],
-      spring_linens_products: [],
-      reorganizing_products: [],
-      discover_categories: [],
-      filters: { price_options: [] },
+      hero_categories: [
+        {
+          title: "Home Decor",
+          image:
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+          slug: "home-decor",
+        },
+        {
+          title: "Kitchen & Dining",
+          image:
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+          slug: "kitchen-dining",
+        },
+        {
+          title: "Furniture",
+          image:
+            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
+          slug: "furniture",
+        },
+        {
+          title: "Vintage Rugs",
+          image:
+            "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop",
+          slug: "vintage-rugs",
+        },
+        {
+          title: "Lighting",
+          image:
+            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
+          slug: "lighting",
+        },
+        {
+          title: "Bedding",
+          image:
+            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
+          slug: "bedding",
+        },
+      ],
+      home_categories: [
+        {
+          id: 1,
+          title: "Artisanal Dinnerware",
+          slug: "artisanal-dinnerware",
+          image:
+            "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&h=400&fit=crop",
+          products_count: 156,
+          category_type: "home_favourites",
+        },
+        {
+          id: 2,
+          title: "Outdoor Furniture & Decor",
+          slug: "outdoor-furniture-decor",
+          image:
+            "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=400&fit=crop",
+          products_count: 89,
+          category_type: "home_favourites",
+        },
+        {
+          id: 3,
+          title: "Garden Decor & Supplies",
+          slug: "garden-decor-supplies",
+          image:
+            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
+          products_count: 234,
+          category_type: "home_favourites",
+        },
+        {
+          id: 4,
+          title: "Personalised Home Decor",
+          slug: "personalised-home-decor",
+          image:
+            "https://images.unsplash.com/photo-1516724562728-afc824a36e84?w=400&h=400&fit=crop",
+          products_count: 112,
+          category_type: "home_favourites",
+        },
+        {
+          id: 5,
+          title: "Candles & Home Fragrance",
+          slug: "candles-home-fragrance",
+          image:
+            "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop",
+          products_count: 245,
+          category_type: "home_favourites",
+        },
+        {
+          id: 6,
+          title: "Vintage Home Decor",
+          slug: "vintage-home-decor",
+          image:
+            "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?w=400&h=400&fit=crop",
+          products_count: 189,
+          category_type: "home_favourites",
+        },
+      ],
+      small_shops: [
+        {
+          name: "OliveLaneInteriors",
+          rating: 5,
+          reviewCount: "100",
+          images: [
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
+          ],
+        },
+        {
+          name: "BrooxFurniture",
+          rating: 5,
+          reviewCount: "116",
+          images: [
+            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+          ],
+        },
+        {
+          name: "ForestlandLinen",
+          rating: 5,
+          reviewCount: "4,977",
+          images: [
+            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
+          ],
+        },
+        {
+          name: "MDTMobilier",
+          rating: 3,
+          reviewCount: "70",
+          images: [
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
+          ],
+        },
+      ],
+      spring_linens_products: [
+        {
+          id: 1,
+          title: "Linen Shower Curtain",
+          slug: "linen-shower-curtain",
+          short_description: "Beautiful linen shower curtain for your bathroom",
+          price: 39.0,
+          discount_price: undefined, // Changed from null
+          discount_percentage: 0,
+          final_price: 39.0,
+          main: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=500&fit=crop",
+          rating: 4.8,
+          review_count: 6900,
+          is_featured: true,
+          is_bestseller: true,
+          is_deal: false,
+          is_new_arrival: false,
+          condition: "new",
+          color: "White",
+          shop_name: "LinenByMN",
+          etsy_pick: true,
+          freeDelivery: false,
+          has_video: false,
+        },
+      ],
+      reorganizing_products: [
+        {
+          id: 101,
+          title: "Spice Labels | Custom Handmade",
+          slug: "spice-labels",
+          short_description: "Handmade custom spice labels for your kitchen",
+          price: 4.5,
+          discount_price: undefined, // Changed from null
+          discount_percentage: 0,
+          final_price: 4.5,
+          main: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=500&fit=crop",
+          rating: 5.0,
+          review_count: 100,
+          is_featured: true,
+          is_bestseller: false,
+          is_deal: false,
+          is_new_arrival: true,
+          condition: "handmade",
+          color: "Various",
+          shop_name: "OliveLaneInteriors",
+          etsy_pick: true,
+          freeDelivery: false,
+          has_video: false,
+        },
+      ],
+      discover_categories: [
+        {
+          title: "Special Starts on Etsy",
+          image:
+            "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop",
+          slug: "special-starts",
+        },
+        {
+          title: "Global Seller Spotlight",
+          image:
+            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
+          slug: "global-seller",
+        },
+        {
+          title: "Vintage Home Decor",
+          image:
+            "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop",
+          slug: "vintage-home-decor",
+        },
+        {
+          title: "Explore Unique Wall Art",
+          image:
+            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
+          slug: "unique-wall-art",
+        },
+      ],
+      filters: {
+        price_options: [
+          { value: "any", label: "Any price" },
+          { value: "under25", label: "Under USD 25" },
+          { value: "25to50", label: "USD 25 to USD 50" },
+          { value: "50to100", label: "USD 50 to USD 100" },
+          { value: "over100", label: "Over USD 100" },
+        ],
+      },
+    };
+  },
+
+  getMockGiftFinderData(): GiftFinderData {
+    return {
+      hero_occasions: [
+        {
+          id: 1,
+          label: "Valentine's Day",
+          date: "14 Feb",
+          icon: "Heart",
+          slug: "valentines-day",
+          order: 1,
+        },
+        {
+          id: 2,
+          label: "Birthday",
+          icon: "Cake",
+          slug: "birthday",
+          order: 2,
+        },
+        {
+          id: 3,
+          label: "Anniversary",
+          icon: "CircleDot",
+          slug: "anniversary",
+          order: 3,
+        },
+      ],
+      browse_interests: [
+        { id: 1, name: "Jewellery", slug: "jewellery", order: 1 },
+        { id: 2, name: "Home Decor", slug: "home-decor", order: 2 },
+        { id: 3, name: "Art", slug: "art", order: 3 },
+      ],
+      featured_collections: [
+        {
+          id: 1,
+          persona: {
+            id: 1,
+            name: "The Jewellery Lover",
+            persona_type: "collection",
+            bg_color: "bg-purple-50",
+            accent_color: "bg-purple-600",
+            slug: "jewellery-lover",
+            order: 1,
+          },
+          title: "Resin Statement Necklaces",
+          slug: "resin-statement-necklaces",
+          interest_tag: "Jewellery",
+          products: [
+            {
+              id: 101,
+              title: "Resin Flower Necklace",
+              slug: "resin-flower-necklace",
+              short_description: "Handmade resin flower necklace",
+              price: 45.0,
+              discount_price: undefined, // Changed from null
+              discount_percentage: 0,
+              final_price: 45.0,
+              main: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=400&fit=crop",
+              rating: 4.8,
+              review_count: 120,
+              is_featured: true,
+              is_bestseller: false,
+              is_deal: false,
+              is_new_arrival: true,
+              condition: "handmade",
+              color: "Mixed",
+              shop_name: "ResinArtistry",
+              etsy_pick: true,
+              freeDelivery: false,
+              has_video: false,
+            },
+          ],
+        },
+      ],
+      recipients: [
+        {
+          id: 1,
+          label: "For your Partner",
+          icon: "Heart",
+          slug: "for-your-partner",
+          order: 1,
+          items: [
+            {
+              id: 1,
+              title: "Gemstone Rings",
+              slug: "gemstone-rings",
+              order: 1,
+            },
+          ],
+        },
+      ],
+      gift_personas: [
+        {
+          id: 1,
+          name: "Gadget Obsessed",
+          persona_type: "interest",
+          bg_color: "bg-sky-200",
+          accent_color: "bg-orange-500",
+          slug: "gadget-obsessed",
+          order: 1,
+        },
+      ],
+      guilty_pleasures: [
+        {
+          id: 11,
+          name: "Chocoholic",
+          persona_type: "guilty_pleasure",
+          bg_color: "bg-yellow-400",
+          slug: "chocoholic",
+          order: 1,
+        },
+      ],
+      zodiac_signs: [
+        {
+          id: 16,
+          name: "Aquarius",
+          persona_type: "zodiac_sign",
+          bg_color: "bg-green-500",
+          slug: "aquarius",
+          order: 1,
+        },
+      ],
+      gift_grid_items: [
+        {
+          id: 1,
+          title: "Date Night Ideas",
+          image:
+            "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=400&fit=crop",
+          size: "small",
+          slug: "date-night-ideas",
+          order: 1,
+        },
+      ],
+      popular_gift_categories: [
+        { id: 1, name: "Jewellery", slug: "jewellery", order: 1 },
+        { id: 2, name: "Clothing", slug: "clothing", order: 2 },
+      ],
+    };
+  },
+
+  getMockGiftTeaserData(): GiftTeaserData {
+    return {
+      teaser_banner: {
+        id: 1,
+        title: "Make any gift extra-special with a gift teaser – it's *FREE!",
+        badge_text: "✨ New",
+        description: "",
+        features: [
+          {
+            id: 1,
+            icon: "ShoppingCart",
+            text: "Mark as a gift to send a gift teaser! *It's free with purchase",
+            order: 1,
+          },
+          {
+            id: 2,
+            icon: "Gift",
+            text: "Send a special note, tracking info, and even a sneak peek",
+            order: 2,
+          },
+          {
+            id: 3,
+            icon: "Send",
+            text: "Share it instantly... even on the way to the party!",
+            order: 3,
+          },
+        ],
+        is_active: true,
+        order: 1,
+      },
+      gift_card_banner: {
+        id: 1,
+        title: "Shop Etsy gift cards",
+        description:
+          "Get them something one-of-a-kind in minutes, no guesswork needed.",
+        button_text: "Pick a design",
+        button_url: "/gift-cards",
+        gradient_from: "from-yellow-300",
+        gradient_via: "via-orange-400",
+        gradient_to: "to-green-500",
+        is_active: true,
+        order: 1,
+      },
+      about_section: {
+        id: 1,
+        title:
+          "If you need gift ideas for anybody – and we mean ANYBODY – in your life, you've come to the right place.",
+        description:
+          "By answering a few simple questions, this fun gift finder will suggest the perfect presents based on the occasion, the person's interests, and more. Etsy takes the stress out of finding special gifts. From anniversary gifts to birthday gifts, and even gifts for the people who have everything, use Etsy to take the guesswork out of giving.",
+        icon: "Gift",
+        button_text_more: "More",
+        button_text_less: "Less",
+        is_active: true,
+      },
+      featured_product: {
+        id: 1,
+        title: "Personalised Leather Coin Purse",
+        slug: "personalised-leather-coin-purse",
+        short_description: "Handmade personalised leather coin purse",
+        price: 29.99,
+        discount_price: undefined, // Changed from null
+        discount_percentage: 0,
+        final_price: 29.99,
+        main: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=400&fit=crop",
+        rating: 4.8,
+        review_count: 1250,
+        is_featured: true,
+        is_bestseller: true,
+        is_deal: false,
+        is_new_arrival: false,
+        condition: "handmade",
+        color: "Brown",
+        shop_name: "LeatherCrafts",
+        etsy_pick: true,
+        freeDelivery: false,
+        has_video: false,
+      },
     };
   },
 
