@@ -1,25 +1,26 @@
 'use client'
 
 import { useRef, useEffect } from "react";
+import Link from "next/link";
 
 const categories = [
-  "Accessories",
-  "Art & Collectibles",
-  "Baby",
-  "Bags & Purses",
-  "Bath & Beauty",
-  "Books, Films & Music",
-  "Clothing",
-  "Craft Supplies & Tools",
-  "Electronics & Accessories",
-  "Gifts",
-  "Home & Living",
-  "Jewellery",
-  "Paper & Party Supplies",
-  "Pet Supplies",
-  "Shoes",
-  "Toys & Games",
-  "Weddings",
+  { label: "Accessories",               href: "/accessories" },
+  { label: "Art & Collectibles",        href: "/c/art-collectibles" },
+  { label: "Baby",                      href: "/c/baby" },
+  { label: "Bags & Purses",             href: "/c/bags-purses" },
+  { label: "Bath & Beauty",             href: "/c/bath-beauty" },
+  { label: "Books, Films & Music",      href: "/c/books-films-music" },
+  { label: "Clothing",                  href: "/c/clothing" },
+  { label: "Craft Supplies & Tools",    href: "/c/craft-supplies-tools" },
+  { label: "Electronics & Accessories", href: "/c/electronics-accessories" },
+  { label: "Gifts",                     href: "/gifts" },
+  { label: "Home & Living",             href: "/home-favourites" },
+  { label: "Jewellery",                 href: "/c/jewellery" },
+  { label: "Paper & Party Supplies",    href: "/c/paper-party-supplies" },
+  { label: "Pet Supplies",              href: "/c/pet-supplies" },
+  { label: "Shoes",                     href: "/c/shoes" },
+  { label: "Toys & Games",              href: "/c/toys-games" },
+  { label: "Weddings",                  href: "/c/weddings" },
 ];
 
 interface CategoriesDropdownProps {
@@ -49,17 +50,14 @@ const CategoriesDropdown = ({ open, onClose }: CategoriesDropdownProps) => {
     >
       <ul className="py-2">
         {categories.map((cat) => (
-          <li key={cat}>
-            <a
-              href="#"
+          <li key={cat.label}>
+            <Link
+              href={cat.href}
               className="block px-6 py-3 text-[15px] font-medium text-foreground hover:underline"
-              onClick={(e) => {
-                e.preventDefault();
-                onClose();
-              }}
+              onClick={onClose}
             >
-              {cat}
-            </a>
+              {cat.label}
+            </Link>
           </li>
         ))}
       </ul>
