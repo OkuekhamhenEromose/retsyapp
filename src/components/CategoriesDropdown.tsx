@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const categories = [
   { label: "Accessories",               href: "/accessories" },
-  { label: "Art & Collectibles",        href: "/c/art-collectibles" },
+  { label: "Art & Collectibles",        href: "/art-collectibles" },
   { label: "Baby",                      href: "/c/baby" },
   { label: "Bags & Purses",             href: "/c/bags-purses" },
   { label: "Bath & Beauty",             href: "/c/bath-beauty" },
