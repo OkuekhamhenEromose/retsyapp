@@ -1,0 +1,22 @@
+/* ProductDetailPage.module.css
+   Only values that CANNOT be expressed as static Tailwind classes live here.
+   Everything else uses Tailwind utility classes in the TSX file.
+*/
+
+/* Hide scrollbar cross-browser */
+.hideScrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+}
+.hideScrollbar::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Dynamic avatar background – generated per-review from JS hsl() */
+.avatarBlue   { background: hsl(80,  60%, 55%); }
+.avatarPurple { background: hsl(160, 60%, 55%); }
+.avatarGreen  { background: hsl(240, 60%, 55%); }
+
+/* Fallback for arbitrary hsl computed at runtime via CSS custom property */
+.avatarDynamic {
+  background: var(--avatar-color, hsl(200, 60%, 55%));
+}
