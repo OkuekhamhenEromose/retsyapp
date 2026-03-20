@@ -30,9 +30,12 @@ const ProductCard = ({
           alt={title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        
+
         {/* Favorite Button */}
-        <button className="favorite-button">
+        <button
+          className="favorite-button"
+          aria-label="Add to favourites"
+        >
           <Heart className="h-4 w-4" />
         </button>
 
@@ -50,9 +53,7 @@ const ProductCard = ({
       {/* Product Info */}
       <div className="mt-2">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-medium text-foreground truncate">
-            {title}
-          </h3>
+          <h3 className="text-sm font-medium text-foreground truncate">{title}</h3>
           {rating && (
             <div className="flex items-center gap-0.5 text-sm shrink-0">
               <span>{rating}</span>
@@ -60,16 +61,12 @@ const ProductCard = ({
             </div>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2 mt-1">
-          {discount && (
-            <span className="sale-badge">{discount}</span>
-          )}
-          {saleBadge && (
-            <span className="text-xs text-muted-foreground">{saleBadge}</span>
-          )}
+          {discount && <span className="sale-badge">{discount}</span>}
+          {saleBadge && <span className="text-xs text-muted-foreground">{saleBadge}</span>}
         </div>
-        
+
         {freeDelivery && (
           <p className="text-xs text-muted-foreground mt-1">Free delivery</p>
         )}

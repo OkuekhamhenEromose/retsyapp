@@ -36,9 +36,10 @@ const HouseIcon = ({ size = 24 }: { size?: number }) => (
 const DealsDropdown = ({ onClose }: { onClose: () => void }) => {
   const ref = useClickOutside(onClose);
   return (
-    <div ref={ref}
-      className="absolute right-0 top-[calc(100%+10px)] w-[380px] bg-white rounded-2xl border border-gray-100 z-[300] overflow-hidden"
-      style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.13)" }}>
+    <div
+      ref={ref}
+      className="absolute right-0 top-[calc(100%+10px)] w-[380px] bg-white rounded-2xl border border-gray-100 z-[300] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.13)]"
+    >
       <div className="px-6 py-4 border-b border-gray-100 text-center">
         <h3 className="text-[15px] font-semibold text-gray-900">Deals</h3>
       </div>
@@ -62,18 +63,19 @@ const ProfileDropdown = ({
   onClose, user, onSignOut,
 }: { onClose: () => void; user: AuthUser; onSignOut: () => void; }) => {
   const ref = useClickOutside(onClose);
-  const primaryItems: { icon: any; label: string; href: string; }[] = [
-    { icon: ShoppingBag,   label: "Purchases and reviews",    href: "/purchases" },
-    { icon: MessageSquare, label: "Messages",                  href: "/messages"  },
-    { icon: CreditCard,    label: "Credit balance: USD 0.00",  href: "/credit"    },
-    { icon: Tag,           label: "Special offers",            href: "/offers"    },
-    { icon: BookMarked,    label: "Etsy Registry",             href: "/registry"  },
-    { icon: HouseIcon,     label: "Sell on Etsy",              href: "/sell"      },
+  const primaryItems: { icon: React.ElementType; label: string; href: string }[] = [
+    { icon: ShoppingBag,   label: "Purchases and reviews",    href: "/purchases"  },
+    { icon: MessageSquare, label: "Messages",                  href: "/messages"   },
+    { icon: CreditCard,    label: "Credit balance: USD 0.00",  href: "/credit"     },
+    { icon: Tag,           label: "Special offers",            href: "/offers"     },
+    { icon: BookMarked,    label: "Etsy Registry",             href: "/registry"   },
+    { icon: HouseIcon,     label: "Sell on Etsy",              href: "/sell"       },
   ];
   return (
-    <div ref={ref}
-      className="absolute right-0 top-[calc(100%+10px)] w-[310px] bg-white rounded-2xl border border-gray-100 z-[300] overflow-hidden"
-      style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.13)" }}>
+    <div
+      ref={ref}
+      className="absolute right-0 top-[calc(100%+10px)] w-[310px] bg-white rounded-2xl border border-gray-100 z-[300] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.13)]"
+    >
       <div className="flex items-center gap-3 px-5 py-4 bg-blue-50 border-b border-gray-100">
         <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden shrink-0">
           {user.profile_pix
@@ -139,18 +141,28 @@ const Header = () => {
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-[1440px] mx-auto px-4 py-3">
         <div className="flex items-center gap-4">
-          <Link href="/" className="shrink-0 font-bold leading-none text-[#F1641E]"
-            style={{ fontFamily: "Georgia,'Times New Roman',serif", fontSize: 32 }}>
+          {/* Logo */}
+          <Link
+            href="/"
+            className="shrink-0 font-bold leading-none text-[#F1641E] text-[32px]"
+            style={{ fontFamily: "Georgia,'Times New Roman',serif" }}
+          >
             Etsy
           </Link>
+
+          {/* Categories */}
           <div className="relative">
-            <button onClick={() => setCategoriesOpen(!categoriesOpen)}
-              className="hidden md:flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap shrink-0">
+            <button
+              onClick={() => setCategoriesOpen(!categoriesOpen)}
+              className="hidden md:flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap shrink-0"
+            >
               <Menu className="h-[18px] w-[18px]" />
               Categories
             </button>
             <CategoriesDropdown open={categoriesOpen} onClose={() => setCategoriesOpen(false)} />
           </div>
+
+          {/* Search */}
           <form onSubmit={handleSearch} className="flex-1 max-w-2xl">
             <div className="relative flex items-center">
               <input
@@ -163,15 +175,20 @@ const Header = () => {
               <button
                 type="submit"
                 className="absolute right-0 h-11 w-12 flex items-center justify-center bg-[#F1641E] rounded-full hover:bg-[#d95518] transition-colors"
+                aria-label="Search"
               >
                 <Search size={18} className="text-white" />
               </button>
             </div>
           </form>
+
+          {/* Actions */}
           <div className="flex items-center gap-1 shrink-0">
             {!isLoggedIn && (
-              <button onClick={() => setSignInOpen(true)}
-                className="hidden md:block px-3 py-2 text-sm font-medium text-gray-700 hover:underline underline-offset-2 whitespace-nowrap">
+              <button
+                onClick={() => setSignInOpen(true)}
+                className="hidden md:block px-3 py-2 text-sm font-medium text-gray-700 hover:underline underline-offset-2 whitespace-nowrap"
+              >
                 Sign in
               </button>
             )}
@@ -182,12 +199,15 @@ const Header = () => {
               className="hidden md:flex p-2 hover:bg-gray-100 rounded-full transition-colors">
               <Gift className="h-6 w-6 text-gray-700" />
             </Link>
+
             {isLoggedIn && (
               <>
                 <div className="relative">
-                  <button aria-label="Deals"
+                  <button
+                    aria-label="Deals"
                     onClick={() => { setDealsOpen((v) => !v); setProfileOpen(false); }}
-                    className={`flex items-center gap-0.5 px-2 py-2 rounded-full transition-colors ${dealsOpen ? "bg-blue-50 ring-2 ring-blue-400" : "hover:bg-gray-100"}`}>
+                    className={`flex items-center gap-0.5 px-2 py-2 rounded-full transition-colors ${dealsOpen ? "bg-blue-50 ring-2 ring-blue-400" : "hover:bg-gray-100"}`}
+                  >
                     <Bell className="h-6 w-6 text-gray-700" />
                     <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
                   </button>
@@ -198,9 +218,11 @@ const Header = () => {
                   <HouseIcon size={24} />
                 </Link>
                 <div className="relative">
-                  <button aria-label="Account"
+                  <button
+                    aria-label="Account"
                     onClick={() => { setProfileOpen((v) => !v); setDealsOpen(false); }}
-                    className={`flex items-center gap-0.5 p-1.5 rounded-full transition-colors ${profileOpen ? "bg-blue-50 ring-2 ring-blue-400" : "hover:bg-gray-100"}`}>
+                    className={`flex items-center gap-0.5 p-1.5 rounded-full transition-colors ${profileOpen ? "bg-blue-50 ring-2 ring-blue-400" : "hover:bg-gray-100"}`}
+                  >
                     <div className="w-[30px] h-[30px] rounded-full bg-gray-300 flex items-center justify-center overflow-hidden ring-1 ring-gray-300">
                       {currentUser?.profile_pix
                         ? <img src={currentUser.profile_pix} alt={currentUser.fullname} className="w-full h-full object-cover" />
@@ -214,6 +236,7 @@ const Header = () => {
                 </div>
               </>
             )}
+
             <Link href="/basket" aria-label="Cart"
               className="p-2 hover:bg-gray-100 rounded-full transition-colors">
               <ShoppingCart className="h-6 w-6 text-gray-700" />
@@ -221,19 +244,23 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Sub-nav */}
       <nav className="border-t border-gray-200 bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <ul className="flex items-center justify-center gap-7 py-2.5 overflow-x-auto scrollbar-hide">
             {[
-              { href: "/gifts",           label: "Gifts",           icon: true  },
-              { href: "/best-of-valentine",  label: "Best of Valentine",  icon: false },
-              { href: "/home-favourites", label: "Home Favourites", icon: false },
-              { href: "/fashion-finds",   label: "Fashion Finds",   icon: false },
-              { href: "/registry",        label: "Registry",        icon: false },
+              { href: "/gifts",            label: "Gifts",            icon: true  },
+              { href: "/best-of-valentine", label: "Best of Valentine", icon: false },
+              { href: "/home-favourites",  label: "Home Favourites",  icon: false },
+              { href: "/fashion-finds",    label: "Fashion Finds",    icon: false },
+              { href: "/registry",         label: "Registry",         icon: false },
             ].map(({ href, label, icon }) => (
               <li key={href}>
-                <Link href={href}
-                  className="flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-2 whitespace-nowrap">
+                <Link
+                  href={href}
+                  className="flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:underline underline-offset-2 whitespace-nowrap"
+                >
                   {icon && <Gift className="h-4 w-4" />}
                   {label}
                 </Link>
@@ -242,8 +269,12 @@ const Header = () => {
           </ul>
         </div>
       </nav>
-      <SignInModal open={signInOpen} onOpenChange={setSignInOpen}
-        onAuthSuccess={() => setCurrentUser(authService.getUser())} />
+
+      <SignInModal
+        open={signInOpen}
+        onOpenChange={setSignInOpen}
+        onAuthSuccess={() => setCurrentUser(authService.getUser())}
+      />
     </header>
   );
 };

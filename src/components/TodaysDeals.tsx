@@ -13,10 +13,8 @@ interface TodaysDealsProps {
 const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
   const [timeLeft, setTimeLeft] = useState({ hours: 22, minutes: 24, seconds: 10 });
 
-  // Filter deals with discount
   const deals = products.filter(p => p.is_deal && p.discount_percentage > 0).slice(0, 4);
 
-  // Fallback deals matching your screenshot
   const fallbackDeals = [
     {
       id: 1,
@@ -36,7 +34,8 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
       condition: "new",
       short_description: "Complete crochet pattern with video tutorial",
       color: "White",
-      saleBadge: "Biggest sale in 60+ days"
+      saleBadge: "Biggest sale in 60+ days",
+      freeDelivery: false,
     },
     {
       id: 2,
@@ -57,7 +56,7 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
       short_description: "Custom photo printed on premium pillow",
       color: "White",
       saleBadge: "Biggest sale in 60+ days",
-      freeDelivery: true
+      freeDelivery: true,
     },
     {
       id: 3,
@@ -77,7 +76,8 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
       condition: "new",
       short_description: "Handcrafted leather watch storage box",
       color: "Brown",
-      saleBadge: "Biggest sale in 60+ days"
+      saleBadge: "Biggest sale in 60+ days",
+      freeDelivery: false,
     },
     {
       id: 4,
@@ -98,29 +98,22 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
       short_description: "Custom LED neon sign for weddings",
       color: "Pink",
       saleBadge: "Biggest sale in 60+ days",
-      freeDelivery: true
-    }
+      freeDelivery: true,
+    },
   ];
 
   const displayDeals = deals.length > 0 ? deals : fallbackDeals;
 
-  // Countdown timer effect
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         const newSeconds = prev.seconds - 1;
-        if (newSeconds >= 0) {
-          return { ...prev, seconds: newSeconds };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        } else {
-          return { hours: 0, minutes: 0, seconds: 0 };
-        }
+        if (newSeconds >= 0) return { ...prev, seconds: newSeconds };
+        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        return { hours: 0, minutes: 0, seconds: 0 };
       });
     }, 1000);
-
     return () => clearInterval(timer);
   }, []);
 
@@ -132,10 +125,8 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div className="flex items-center gap-3">
           <h2 className="section-title text-2xl md:text-3xl font-light text-gray-900 mb-0">
-            Today's big deals
+            Today&apos;s big deals
           </h2>
-          
-          {/* Countdown Timer */}
           <div className="flex items-center gap-2 bg-gradient-to-r from-rose-50 to-pink-50 px-4 py-2 rounded-full border border-rose-100">
             <Clock className="h-4 w-4 text-rose-500" />
             <span className="text-sm font-medium text-gray-700">
@@ -143,16 +134,16 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
             </span>
           </div>
         </div>
-        
+
         {/* Navigation Arrows */}
         <div className="flex items-center gap-2">
-          <button 
+          <button
             className="p-2.5 rounded-full border border-gray-200 hover:border-rose-200 hover:bg-rose-50 transition-all duration-300"
             aria-label="Previous deals"
           >
             <ChevronLeft className="h-5 w-5 text-gray-600" />
           </button>
-          <button 
+          <button
             className="p-2.5 rounded-full border border-gray-200 hover:border-rose-200 hover:bg-rose-50 transition-all duration-300"
             aria-label="Next deals"
           >
@@ -183,7 +174,7 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
               </div>
             )}
 
-            {/* Image Container */}
+            {/* Image */}
             <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
               {product.main ? (
                 <Image
@@ -194,36 +185,28 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl">
-                  🏷️
-                </div>
+                <div className="w-full h-full flex items-center justify-center text-4xl">🏷️</div>
               )}
-              
-              {/* Favorite Button */}
-              <button 
+
+              <button
+                aria-label={`Add ${product.title} to favourites`}
                 className="absolute top-3 right-3 bg-white/80 backdrop-blur-sm p-2 rounded-full hover:bg-white transition-all duration-300 hover:scale-110 shadow-sm"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('Add to favorites:', product.id);
-                }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
               >
                 <Heart className="h-4 w-4 text-gray-700" />
               </button>
             </div>
 
-            {/* Product Details */}
+            {/* Details */}
             <div className="p-4">
-              {/* Title */}
               <h3 className="font-medium text-gray-900 text-sm mb-2 line-clamp-2 min-h-[40px]">
                 {product.title}
               </h3>
 
-              {/* Rating */}
               <div className="flex items-center gap-2 mb-3">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
-                    <Star 
+                    <Star
                       key={i}
                       className={`h-3 w-3 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
                     />
@@ -234,16 +217,13 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
                 </span>
               </div>
 
-              {/* Price Section */}
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl font-bold text-gray-900">
                   ${product.final_price.toFixed(2)}
                 </span>
                 {product.discount_price && product.discount_price < product.price && (
                   <>
-                    <span className="text-sm text-gray-500 line-through">
-                      ${product.price.toFixed(2)}
-                    </span>
+                    <span className="text-sm text-gray-500 line-through">${product.price.toFixed(2)}</span>
                     <span className="text-sm font-bold text-red-500 bg-red-50 px-2 py-1 rounded">
                       -{product.discount_percentage}%
                     </span>
@@ -251,10 +231,9 @@ const TodaysDeals: React.FC<TodaysDealsProps> = ({ products = [] }) => {
                 )}
               </div>
 
-              {/* Free Delivery Badge */}
               {product.freeDelivery && (
                 <div className="inline-flex items-center gap-1 text-xs text-green-600 font-medium mt-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                   FREE delivery
                 </div>
               )}

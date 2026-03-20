@@ -72,11 +72,11 @@ const ALL_ITEMS: BabyItem[] = [
 ];
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: "relevance",    label: "Relevance" },
-  { value: "lowest_price", label: "Lowest Price" },
-  { value: "highest_price",label: "Highest Price" },
-  { value: "top_reviews",  label: "Top Customer Reviews" },
-  { value: "most_recent",  label: "Most Recent" },
+  { value: "relevance",     label: "Relevance" },
+  { value: "lowest_price",  label: "Lowest Price" },
+  { value: "highest_price", label: "Highest Price" },
+  { value: "top_reviews",   label: "Top Customer Reviews" },
+  { value: "most_recent",   label: "Most Recent" },
 ];
 
 const ITEMS_PER_PAGE = 8;
@@ -94,7 +94,7 @@ function sortItems(items: BabyItem[], sort: SortKey): BabyItem[] {
   }
 }
 
-function fmt(n: number) {
+function fmtCount(n: number) {
   return n >= 1000 ? `${(n / 1000).toFixed(0)}k` : n.toLocaleString();
 }
 
@@ -104,51 +104,51 @@ function StarRating({ rating, count }: { rating: number; count: number }) {
   const half  = rating - full >= 0.5;
   const empty = 5 - full - (half ? 1 : 0);
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 2, marginTop: 4 }}>
+    <div className="flex items-center gap-0.5 mt-1">
       {Array.from({ length: full }).map((_, i) => (
-        <svg key={`f${i}`} width="12" height="12" viewBox="0 0 24 24" fill="#F1641E"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg key={`f${i}`} width="12" height="12" viewBox="0 0 24 24" fill="#F1641E">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
       ))}
       {half && (
         <svg width="12" height="12" viewBox="0 0 24 24">
-          <defs><linearGradient id="hg3"><stop offset="50%" stopColor="#F1641E"/><stop offset="50%" stopColor="#ddd"/></linearGradient></defs>
-          <path fill="url(#hg3)" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          <defs>
+            <linearGradient id="baby-hg">
+              <stop offset="50%" stopColor="#F1641E"/>
+              <stop offset="50%" stopColor="#ddd"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#baby-hg)" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
         </svg>
       )}
       {Array.from({ length: empty }).map((_, i) => (
-        <svg key={`e${i}`} width="12" height="12" viewBox="0 0 24 24" fill="#ddd"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <svg key={`e${i}`} width="12" height="12" viewBox="0 0 24 24" fill="#ddd">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
       ))}
-      <span style={{ fontSize: 12, color: "#666", marginLeft: 3 }}>({fmt(count)})</span>
+      <span className="text-xs text-gray-500 ml-0.5">({fmtCount(count)})</span>
     </div>
   );
 }
 
 // ─── Sub-category card ────────────────────────────────────────────────────────
 function SubCategoryCard({ cat }: { cat: SubCategory }) {
-  const [hovered, setHovered] = useState(false);
   return (
     <a
       href={`/c/baby/${cat.slug}`}
-      style={{ textDecoration: "none", color: "inherit", display: "block" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="block group text-inherit no-underline"
     >
-      <div style={{
-        borderRadius: 8, overflow: "hidden", aspectRatio: "1",
-        background: "#f5f5f5",
-        transform: hovered ? "scale(1.03)" : "scale(1)",
-        transition: "transform 0.2s ease",
-        boxShadow: hovered ? "0 4px 20px rgba(0,0,0,0.12)" : "none",
-      }}>
+      <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 transition-transform duration-200 group-hover:scale-[1.03] group-hover:shadow-lg">
         <img
-          src={cat.image_url} alt={cat.name}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          src={cat.image_url}
+          alt={cat.name}
+          className="w-full h-full object-cover"
           loading="lazy"
         />
       </div>
-      <p style={{
-        marginTop: 8, fontSize: 13, fontWeight: 500, color: "#222",
-        textAlign: "center", lineHeight: 1.3, fontFamily: "inherit",
-      }}>{cat.name}</p>
+      <p className="mt-2 text-[13px] font-medium text-center leading-snug text-gray-800">
+        {cat.name}
+      </p>
     </a>
   );
 }
@@ -168,40 +168,29 @@ function SortDropdown({ sort, onChange }: { sort: SortKey; onChange: (s: SortKey
   }, []);
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(v => !v)}
-        style={{
-          display: "flex", alignItems: "center", gap: 6, padding: "9px 16px",
-          borderRadius: 999, border: "1.5px solid #222", background: "#fff",
-          fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#222",
-          fontFamily: "inherit",
-        }}>
-        Sort by: {label}
+        className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border-[1.5px] border-gray-800 bg-white text-sm font-semibold text-gray-800 cursor-pointer whitespace-nowrap"
+      >
+        <span className="font-normal text-gray-500">Sort by:</span> {label}
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
           <path d={open ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"}/>
         </svg>
       </button>
       {open && (
-        <div style={{
-          position: "absolute", top: "calc(100% + 6px)", right: 0,
-          background: "#fff", border: "1px solid #e8e8e8", borderRadius: 10,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.12)", zIndex: 100, minWidth: 210, overflow: "hidden",
-        }}>
+        <div className="absolute right-0 top-[calc(100%+6px)] bg-white border border-gray-200 rounded-xl shadow-xl z-[100] min-w-[210px] overflow-hidden">
           {SORT_OPTIONS.map(opt => (
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setOpen(false); }}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                width: "100%", padding: "11px 16px",
-                background: opt.value === sort ? "#fff8f5" : "#fff",
-                border: "none", cursor: "pointer", fontSize: 14,
-                color: "#222", fontFamily: "inherit", textAlign: "left",
-              }}>
+              className={`flex items-center justify-between w-full px-4 py-[11px] text-sm text-gray-800 text-left cursor-pointer border-none ${opt.value === sort ? "bg-orange-50" : "bg-white hover:bg-gray-50"}`}
+            >
               {opt.label}
               {opt.value === sort && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F1641E" strokeWidth="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F1641E" strokeWidth="2.5">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
               )}
             </button>
           ))}
@@ -214,35 +203,24 @@ function SortDropdown({ sort, onChange }: { sort: SortKey; onChange: (s: SortKey
 // ─── Product Card ─────────────────────────────────────────────────────────────
 function ProductCard({ item }: { item: BabyItem }) {
   const [wishlisted, setWishlisted] = useState(false);
-  const [imgHovered, setImgHovered] = useState(false);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <article className="flex flex-col cursor-pointer" role="listitem">
       {/* Image */}
-      <div
-        style={{ position: "relative", borderRadius: 8, overflow: "hidden", background: "#f5f5f5", aspectRatio: "1", cursor: "pointer" }}
-        onMouseEnter={() => setImgHovered(true)}
-        onMouseLeave={() => setImgHovered(false)}>
+      <div className="relative rounded-lg overflow-hidden bg-gray-100 aspect-square group/img">
         <img
-          src={item.image_url} alt={item.title}
-          style={{
-            width: "100%", height: "100%", objectFit: "cover", display: "block",
-            transform: imgHovered ? "scale(1.04)" : "scale(1)",
-            transition: "transform 0.3s ease",
-          }}
+          src={item.image_url}
+          alt={item.title}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover/img:scale-[1.04]"
           loading="lazy"
         />
 
-        {/* Wishlist button */}
+        {/* Wishlist */}
         <button
           onClick={(e) => { e.preventDefault(); setWishlisted(v => !v); }}
           aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          style={{
-            position: "absolute", top: 8, right: 8, width: 34, height: 34,
-            borderRadius: "50%", background: "rgba(255,255,255,0.88)", border: "none",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
-          }}>
+          className="absolute top-2 right-2 w-[34px] h-[34px] rounded-full bg-white/88 border-none flex items-center justify-center cursor-pointer shadow-sm backdrop-blur-sm"
+        >
           <svg width="17" height="17" viewBox="0 0 24 24"
             fill={wishlisted ? "#e05260" : "none"}
             stroke={wishlisted ? "#e05260" : "#555"} strokeWidth="2">
@@ -250,99 +228,80 @@ function ProductCard({ item }: { item: BabyItem }) {
           </svg>
         </button>
 
-        {/* Low stock badge */}
+        {/* Low stock */}
         {item.low_stock_message && (
-          <div style={{
-            position: "absolute", bottom: 8, left: 8,
-            background: "rgba(220,53,69,0.9)", color: "#fff",
-            fontSize: 10, fontWeight: 600, padding: "3px 8px",
-            borderRadius: 4,
-          }}>
+          <div className="absolute bottom-2 left-2 bg-red-600/90 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
             {item.low_stock_message}
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div style={{ padding: "10px 2px 0" }}>
-        {/* Ad label */}
-        {item.is_ad && (
-          <p style={{ fontSize: 11, color: "#888", margin: "0 0 3px" }}>Ad by Etsy seller</p>
-        )}
+      <div className="pt-2.5 px-0.5">
+        {item.is_ad && <p className="text-[11px] text-gray-400 mb-0.5">Ad by Etsy seller</p>}
 
-        {/* Title */}
-        <p style={{
-          fontSize: 14, color: "#222", margin: 0, lineHeight: 1.4,
-          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
-          overflow: "hidden", fontWeight: 400,
-        }}>{item.title}</p>
+        <p className="text-[14px] text-gray-800 leading-snug line-clamp-2 font-normal">
+          {item.title}
+        </p>
 
-        {/* Stars */}
         <StarRating rating={item.star_rating} count={item.review_count} />
 
         {/* Price row */}
-        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>
+        <div className="flex items-baseline gap-1.5 mt-1.5 flex-wrap">
+          <span className="text-[15px] font-bold text-gray-900">
             USD {item.price_usd.toFixed(2)}
           </span>
           {item.original_price && (
             <>
-              <span style={{ fontSize: 13, color: "#888", textDecoration: "line-through" }}>
+              <span className="text-[13px] text-gray-400 line-through">
                 USD {item.original_price.toFixed(2)}
               </span>
-              <span style={{ fontSize: 12, color: "#555", fontWeight: 500 }}>
+              <span className="text-xs text-gray-500">
                 ({item.discount_pct}% off)
               </span>
             </>
           )}
         </div>
 
-        {/* Free delivery chip */}
         {item.has_free_delivery && (
-          <span style={{
-            display: "inline-block", marginTop: 5,
-            fontSize: 12, fontWeight: 600, color: "#2e7d32",
-            background: "#e8f5e9", borderRadius: 4, padding: "2px 7px",
-          }}>FREE delivery</span>
+          <span className="inline-block mt-1.5 text-xs font-semibold text-green-700 bg-green-50 rounded px-1.5 py-0.5">
+            FREE delivery
+          </span>
         )}
 
-        {/* Personalised badge */}
         {item.is_personalised && (
-          <span style={{
-            display: "inline-block", marginTop: 5, marginLeft: item.has_free_delivery ? 4 : 0,
-            fontSize: 11, fontWeight: 600, color: "#c77700",
-            background: "#fff8e1", borderRadius: 4, padding: "2px 7px",
-          }}>Personalised</span>
+          <span className="inline-block mt-1.5 ml-1 text-[11px] font-semibold text-amber-700 bg-amber-50 rounded px-1.5 py-0.5">
+            Personalised
+          </span>
         )}
 
-        {/* Star Seller badge */}
         {item.is_star_seller && (
-          <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5 }}>
-            <span style={{
-              fontSize: 11, fontWeight: 700, color: "#fff",
-              background: "#7B5BF7", borderRadius: 4, padding: "2px 7px",
-              display: "flex", alignItems: "center", gap: 3,
-            }}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <div className="flex items-center gap-1 mt-1.5">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-purple-600 rounded px-1.5 py-0.5">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
               Star Seller
             </span>
           </div>
         )}
       </div>
-    </div>
+    </article>
   );
 }
 
-// ─── Chip ─────────────────────────────────────────────────────────────────────
+// ─── Filter Chip ──────────────────────────────────────────────────────────────
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span style={{
-      display: "flex", alignItems: "center", gap: 6,
-      padding: "5px 12px", borderRadius: 999,
-      background: "#f0f0f0", fontSize: 13, fontWeight: 500,
-    }}>
+    <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 text-[13px] font-medium text-gray-700">
       {label}
-      <button onClick={onRemove} style={{ background: "none", border: "none", cursor: "pointer", lineHeight: 1, color: "#555", fontSize: 16 }}>×</button>
+      <button
+        onClick={onRemove}
+        className="text-gray-500 hover:text-gray-800 text-base leading-none bg-transparent border-none cursor-pointer"
+        aria-label={`Remove ${label} filter`}
+      >
+        ×
+      </button>
     </span>
   );
 }
@@ -378,93 +337,98 @@ function FilterDrawer({
 
   if (!open) return null;
 
-  const pill = (label: string, active: boolean, onClick: () => void) => (
-    <button onClick={onClick} style={{
-      padding: "7px 16px", borderRadius: 999,
-      border: `1.5px solid ${active ? "#222" : "#e0e0e0"}`,
-      background: active ? "#222" : "#fff",
-      color: active ? "#fff" : "#444",
-      fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-    }}>{label}</button>
+  const PillBtn = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
+    <button
+      onClick={onClick}
+      className={`px-4 py-1.5 rounded-full text-[13px] font-semibold cursor-pointer transition-colors ${
+        active
+          ? "bg-gray-900 text-white border-[1.5px] border-gray-900"
+          : "bg-white text-gray-600 border-[1.5px] border-gray-200 hover:border-gray-400"
+      }`}
+    >
+      {label}
+    </button>
   );
 
-  const radio = (val: string, cur: string, set: (v: string) => void) => (
-    <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 14, color: "#333" }}>
-      <input type="radio" value={val} checked={cur === val} onChange={() => set(val)} style={{ accentColor: "#222" }} />
+  const RadioOpt = ({ val, cur, set }: { val: string; cur: string; set: (v: string) => void }) => (
+    <label className="flex items-center gap-2 cursor-pointer text-[14px] text-gray-700">
+      <input type="radio" value={val} checked={cur === val} onChange={() => set(val)} className="accent-gray-900" />
       {val}
     </label>
   );
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 200 }} />
-      <div style={{
-        position: "fixed", top: 0, left: 0, bottom: 0, width: 360,
-        background: "#fff", zIndex: 201, overflowY: "auto", padding: "0 0 100px",
-        animation: "slideInDrawer 0.25s ease",
-      }}>
+      <div onClick={onClose} className="fixed inset-0 bg-black/40 z-[200]" />
+      <div className="fixed top-0 left-0 bottom-0 w-[360px] bg-white z-[201] overflow-y-auto pb-24 animate-[slideInDrawer_0.25s_ease]">
         <style>{`@keyframes slideInDrawer { from { transform: translateX(-100%); } to { transform: translateX(0); } }`}</style>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid #eee" }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Filters</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 22, color: "#555" }}>×</button>
+        <div className="flex items-center justify-between px-5 py-[18px] border-b border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900 m-0">Filters</h2>
+          <button onClick={onClose} className="bg-transparent border-none cursor-pointer text-2xl text-gray-500 hover:text-gray-800">×</button>
         </div>
 
-        <div style={{ padding: "20px" }}>
+        <div className="p-5 space-y-7">
           {/* Special offers */}
-          <div style={{ marginBottom: 28 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: "#111" }}>Special offers</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {pill("FREE delivery", lFree, () => setLFree(v => !v))}
-              {pill("On sale",       lSale, () => setLSale(v => !v))}
-              {pill("Personalised",  lPers, () => setLPers(v => !v))}
+          <div>
+            <p className="text-[14px] font-bold text-gray-900 mb-3">Special offers</p>
+            <div className="flex flex-wrap gap-2">
+              <PillBtn label="FREE delivery" active={lFree} onClick={() => setLFree(v => !v)} />
+              <PillBtn label="On sale"       active={lSale} onClick={() => setLSale(v => !v)} />
+              <PillBtn label="Personalised"  active={lPers} onClick={() => setLPers(v => !v)} />
             </div>
           </div>
 
           {/* Shop location */}
-          <div style={{ marginBottom: 28 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: "#111" }}>Shop location</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {["Anywhere", "Nigeria", "Custom"].map(v => radio(v, lLoc, setLLoc))}
+          <div>
+            <p className="text-[14px] font-bold text-gray-900 mb-3">Shop location</p>
+            <div className="flex flex-col gap-2.5">
+              {["Anywhere", "Nigeria", "Custom"].map(v => (
+                <RadioOpt key={v} val={v} cur={lLoc} set={setLLoc} />
+              ))}
             </div>
             {lLoc === "Custom" && (
               <input
-                value={lCust} onChange={e => setLCust(e.target.value)}
+                value={lCust}
+                onChange={e => setLCust(e.target.value)}
                 placeholder="Enter country…"
-                style={{ marginTop: 10, width: "100%", padding: "9px 12px", borderRadius: 8, border: "1.5px solid #ccc", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                className="mt-2.5 w-full px-3 py-2.5 rounded-lg border-[1.5px] border-gray-300 text-[14px] outline-none focus:border-gray-500"
               />
             )}
           </div>
 
           {/* Etsy's Pick */}
-          <div style={{ marginBottom: 28 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, marginBottom: 12, color: "#111" }}>Etsy's best</p>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-              <input type="checkbox" checked={lEtsy} onChange={() => setLEtsy(v => !v)} style={{ accentColor: "#222", width: 16, height: 16 }} />
-              <span style={{ fontSize: 14, color: "#333" }}>Etsy's Pick</span>
+          <div>
+            <p className="text-[14px] font-bold text-gray-900 mb-3">Etsy&apos;s best</p>
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={lEtsy}
+                onChange={() => setLEtsy(v => !v)}
+                className="accent-gray-900 w-4 h-4"
+              />
+              <span className="text-[14px] text-gray-700">Etsy&apos;s Pick</span>
             </label>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{
-          position: "fixed", bottom: 0, left: 0, width: 360,
-          background: "#fff", borderTop: "1px solid #eee",
-          padding: "14px 20px", display: "flex", gap: 12, boxSizing: "border-box",
-        }}>
-          <button onClick={onClose} style={{
-            flex: 1, padding: "12px", borderRadius: 999,
-            border: "1.5px solid #222", background: "#fff",
-            fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-          }}>Cancel</button>
+        <div className="fixed bottom-0 left-0 w-[360px] bg-white border-t border-gray-100 px-5 py-3.5 flex gap-3">
           <button
-            onClick={() => { onApply({ freeDelivery: lFree, onSale: lSale, isPersonalised: lPers, shopLocation: lLoc, customLocation: lCust, etsyPick: lEtsy }); onClose(); }}
-            style={{
-              flex: 2, padding: "12px", borderRadius: 999,
-              border: "none", background: "#222",
-              fontSize: 14, fontWeight: 600, cursor: "pointer",
-              color: "#fff", fontFamily: "inherit",
-            }}>Apply</button>
+            onClick={onClose}
+            className="flex-1 py-3 rounded-full border-[1.5px] border-gray-800 bg-white text-[14px] font-semibold cursor-pointer text-gray-800 hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              onApply({ freeDelivery: lFree, onSale: lSale, isPersonalised: lPers, shopLocation: lLoc, customLocation: lCust, etsyPick: lEtsy });
+              onClose();
+            }}
+            className="flex-[2] py-3 rounded-full border-none bg-gray-900 text-[14px] font-semibold cursor-pointer text-white hover:bg-gray-700 transition-colors"
+          >
+            Apply
+          </button>
         </div>
       </div>
     </>
@@ -478,7 +442,6 @@ export default function BabyPage() {
   const [filterOpen,   setFilterOpen]   = useState(false);
   const [page,         setPage]         = useState(1);
 
-  // Filters
   const [freeDelivery,   setFreeDelivery]   = useState(false);
   const [onSale,         setOnSale]         = useState(false);
   const [isPersonalised, setIsPersonalised] = useState(false);
@@ -500,8 +463,8 @@ export default function BabyPage() {
     setPage(1);
   }, []);
 
-  const visibleCats  = showAll ? SUBCATEGORIES : SUBCATEGORIES.slice(0, INITIAL_CATS);
-  const hiddenCount  = SUBCATEGORIES.length - INITIAL_CATS;
+  const visibleCats = showAll ? SUBCATEGORIES : SUBCATEGORIES.slice(0, INITIAL_CATS);
+  const hiddenCount = SUBCATEGORIES.length - INITIAL_CATS;
 
   const filteredItems = ALL_ITEMS.filter(item => {
     if (freeDelivery && !item.has_free_delivery) return false;
@@ -521,195 +484,148 @@ export default function BabyPage() {
   const hasMore        = paginatedItems.length < sortedItems.length;
 
   const activeFilterCount = [
-    freeDelivery, onSale, isPersonalised, etsyPick,
-    shopLocation !== "Anywhere",
+    freeDelivery, onSale, isPersonalised, etsyPick, shopLocation !== "Anywhere",
   ].filter(Boolean).length;
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap');
-        * { box-sizing: border-box; }
-        body { background: #f7f7f7; font-family: 'DM Sans', sans-serif; margin: 0; }
+    <main className="max-w-[1280px] mx-auto px-5 pb-16">
 
-        .baby-product-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-        }
-        @media (max-width: 1100px) { .baby-product-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 768px)  { .baby-product-grid { grid-template-columns: repeat(2, 1fr); } }
+      {/* Hero heading */}
+      <header className="text-center py-9 pb-7">
+        <h1
+          className="text-[clamp(28px,4vw,42px)] font-normal text-gray-900 mb-2"
+          style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+        >
+          Baby
+        </h1>
+        <p className="text-[15px] text-gray-500 tracking-[0.01em]">
+          Adorable baby clothes, nursery essentials, toys and care products for your little one
+        </p>
+      </header>
 
-        .baby-cat-grid {
-          display: grid;
-          grid-template-columns: repeat(6, 1fr);
-          gap: 16px;
-        }
-        @media (max-width: 1100px) { .baby-cat-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 600px)  { .baby-cat-grid { grid-template-columns: repeat(3, 1fr); } }
+      {/* Sub-category grid */}
+      <section aria-label="Browse baby categories">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+          {visibleCats.map((cat, i) => (
+            <div
+              key={cat.id}
+              className="animate-[fadeInUp_0.35s_ease_both]"
+              style={{ animationDelay: `${i * 0.04}s` }}
+            >
+              <SubCategoryCard cat={cat} />
+            </div>
+          ))}
+        </div>
 
-        .baby-show-more-btn:hover { background: #f5f5f5 !important; }
-        .baby-load-more-btn:hover { background: #111 !important; }
+        <div className="flex justify-center mt-7">
+          <button
+            onClick={() => setShowAll(v => !v)}
+            aria-expanded={showAll}
+            className="flex items-center gap-1.5 px-7 py-3 rounded-full border-[1.5px] border-gray-200 bg-white text-[14px] font-semibold text-gray-600 cursor-pointer hover:bg-gray-50 transition-colors"
+          >
+            {showAll ? (
+              <>Show less <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg></>
+            ) : (
+              <>Show more ({hiddenCount}) <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg></>
+            )}
+          </button>
+        </div>
+      </section>
 
-        @keyframes babyFadeInUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .baby-card-animate { animation: babyFadeInUp 0.35s ease both; }
-      `}</style>
+      {/* Toolbar */}
+      <div className="flex items-center justify-between mt-10 mb-5 flex-wrap gap-3">
+        <button
+          onClick={() => setFilterOpen(true)}
+          aria-label="Open filters"
+          className="relative flex items-center gap-2 px-[18px] py-[9px] rounded-full border-[1.5px] border-gray-800 bg-white text-[14px] font-semibold text-gray-800 cursor-pointer hover:bg-gray-50 transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>
+          </svg>
+          All Filters
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-[18px] h-[18px] rounded-full bg-[#F1641E] text-white text-[11px] font-bold flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
 
-      <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px 60px" }}>
+        <div className="flex items-center gap-4 flex-wrap">
+          <span className="text-[13px] text-gray-500">
+            {sortedItems.length.toLocaleString()}+ items
+            <span className="text-gray-400 ml-1">with ads</span>
+          </span>
+          <SortDropdown sort={sort} onChange={s => { setSort(s); setPage(1); }} />
+        </div>
+      </div>
 
-        {/* ── Hero heading ─────────────────────────────── */}
-        <header style={{ textAlign: "center", padding: "36px 0 28px" }}>
-          <h1 style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: "clamp(28px,4vw,42px)", fontWeight: 400,
-            color: "#111", marginBottom: 8,
-          }}>
-            Baby
-          </h1>
-          <p style={{ fontSize: 15, color: "#666", letterSpacing: "0.01em" }}>
-            Adorable baby clothes, nursery essentials, toys and care products for your little one
-          </p>
-        </header>
+      {/* Active filter chips */}
+      {activeFilterCount > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {freeDelivery   && <Chip label="FREE delivery" onRemove={() => setFreeDelivery(false)} />}
+          {onSale         && <Chip label="On sale"       onRemove={() => setOnSale(false)} />}
+          {isPersonalised && <Chip label="Personalised"  onRemove={() => setIsPersonalised(false)} />}
+          {shopLocation !== "Anywhere" && (
+            <Chip
+              label={shopLocation === "Custom" && customLocation ? customLocation : shopLocation}
+              onRemove={() => setShopLocation("Anywhere")}
+            />
+          )}
+          {etsyPick && <Chip label="Etsy's Pick" onRemove={() => setEtsyPick(false)} />}
+          <button
+            onClick={clearAll}
+            className="text-[13px] text-[#F1641E] bg-transparent border-none cursor-pointer font-semibold py-1"
+          >
+            Clear all
+          </button>
+        </div>
+      )}
 
-        {/* ── Sub-category grid ─────────────────────────── */}
-        <section aria-label="Browse baby categories">
-          <div className="baby-cat-grid">
-            {visibleCats.map((cat, i) => (
-              <div key={cat.id} className="baby-card-animate" style={{ animationDelay: `${i * 0.04}s` }}>
-                <SubCategoryCard cat={cat} />
+      {/* Product grid */}
+      <section aria-label="Baby products" role="list">
+        {sortedItems.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" className="mx-auto mb-4">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <p className="text-[16px] mb-2">No products match your filters</p>
+            <button onClick={clearAll} className="text-[#F1641E] bg-transparent border-none cursor-pointer text-[14px] font-semibold">
+              Clear all filters
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {paginatedItems.map((item, i) => (
+              <div
+                key={item.id}
+                className="animate-[fadeInUp_0.35s_ease_both]"
+                style={{ animationDelay: `${(i % ITEMS_PER_PAGE) * 0.05}s` }}
+              >
+                <ProductCard item={item} />
               </div>
             ))}
           </div>
+        )}
+      </section>
 
-          {/* Show more / less */}
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 28 }}>
-            <button
-              className="baby-show-more-btn"
-              onClick={() => setShowAll(v => !v)}
-              aria-expanded={showAll}
-              style={{
-                padding: "11px 28px", borderRadius: 999,
-                border: "1.5px solid #ddd", background: "#fff",
-                fontSize: 14, fontWeight: 600, cursor: "pointer",
-                color: "#333", display: "flex", alignItems: "center", gap: 6,
-                transition: "background 0.15s ease", fontFamily: "inherit",
-              }}>
-              {showAll ? (
-                <>Show less <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 15l-6-6-6 6"/></svg></>
-              ) : (
-                <>Show more ({hiddenCount}) <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 9l6 6 6-6"/></svg></>
-              )}
-            </button>
-          </div>
-        </section>
-
-        {/* ── Toolbar ──────────────────────────────────── */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          marginTop: 40, marginBottom: 20, flexWrap: "wrap", gap: 12,
-        }}>
-          {/* All Filters pill */}
+      {/* Load more */}
+      {hasMore && (
+        <div className="flex justify-center mt-10">
           <button
-            onClick={() => setFilterOpen(true)}
-            aria-label="Open filters"
-            style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "9px 18px", borderRadius: 999,
-              border: "1.5px solid #222", background: "#fff",
-              fontSize: 14, fontWeight: 600, cursor: "pointer",
-              color: "#222", fontFamily: "inherit", position: "relative",
-            }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>
-            </svg>
-            All Filters
-            {activeFilterCount > 0 && (
-              <span style={{
-                position: "absolute", top: -6, right: -6, width: 18, height: 18,
-                borderRadius: "50%", background: "#F1641E", color: "#fff",
-                fontSize: 11, fontWeight: 700,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>{activeFilterCount}</span>
-            )}
+            onClick={() => setPage(p => p + 1)}
+            className="px-10 py-3.5 rounded-full border-none bg-gray-900 text-white text-[15px] font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
+          >
+            Load more
           </button>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, color: "#666" }}>
-              {sortedItems.length.toLocaleString()}+ items
-              <span style={{ color: "#999", marginLeft: 4 }}>with ads</span>
-              <span style={{
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                width: 16, height: 16, borderRadius: "50%", border: "1px solid #aaa",
-                fontSize: 10, color: "#888", marginLeft: 4, cursor: "pointer",
-              }}>?</span>
-            </span>
-            <SortDropdown sort={sort} onChange={s => { setSort(s); setPage(1); }} />
-          </div>
         </div>
+      )}
 
-        {/* Active filter chips */}
-        {activeFilterCount > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-            {freeDelivery   && <Chip label="FREE delivery" onRemove={() => setFreeDelivery(false)} />}
-            {onSale         && <Chip label="On sale"       onRemove={() => setOnSale(false)} />}
-            {isPersonalised && <Chip label="Personalised"  onRemove={() => setIsPersonalised(false)} />}
-            {shopLocation !== "Anywhere" && (
-              <Chip
-                label={shopLocation === "Custom" && customLocation ? customLocation : shopLocation}
-                onRemove={() => setShopLocation("Anywhere")}
-              />
-            )}
-            {etsyPick && <Chip label="Etsy's Pick" onRemove={() => setEtsyPick(false)} />}
-            <button
-              onClick={clearAll}
-              style={{ fontSize: 13, color: "#F1641E", background: "none", border: "none", cursor: "pointer", fontWeight: 600, padding: "5px 0" }}>
-              Clear all
-            </button>
-          </div>
-        )}
-
-        {/* ── Product grid ─────────────────────────────── */}
-        <section aria-label="Baby products" role="list">
-          {sortedItems.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 0", color: "#888" }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" style={{ display: "block", margin: "0 auto 16px" }}>
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-              </svg>
-              <p style={{ fontSize: 16, marginBottom: 8 }}>No products match your filters</p>
-              <button onClick={clearAll} style={{ color: "#F1641E", background: "none", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
-                Clear all filters
-              </button>
-            </div>
-          ) : (
-            <div className="baby-product-grid">
-              {paginatedItems.map((item, i) => (
-                <div key={item.id} className="baby-card-animate" style={{ animationDelay: `${(i % ITEMS_PER_PAGE) * 0.05}s` }}>
-                  <ProductCard item={item} />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Load more */}
-        {hasMore && (
-          <div style={{ display: "flex", justifyContent: "center", marginTop: 40 }}>
-            <button
-              className="baby-load-more-btn"
-              onClick={() => setPage(p => p + 1)}
-              style={{
-                padding: "13px 40px", borderRadius: 999, border: "none",
-                background: "#222", color: "#fff", fontSize: 15, fontWeight: 600,
-                cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s ease",
-              }}>
-              Load more
-            </button>
-          </div>
-        )}
-      </main>
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
 
       <FilterDrawer
         open={filterOpen} onClose={() => setFilterOpen(false)}
@@ -717,6 +633,6 @@ export default function BabyPage() {
         shopLocation={shopLocation} customLocation={customLocation} etsyPick={etsyPick}
         onApply={handleApplyFilters}
       />
-    </>
+    </main>
   );
 }

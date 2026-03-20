@@ -11,12 +11,10 @@ interface EditorsPicksVintageProps {
 }
 
 const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = [] }) => {
-  // Filter vintage products
-  const vintageProducts = products.filter(p => 
-    p.condition === 'vintage' || p.title.toLowerCase().includes('vintage')
-  ).slice(0, 4);
+  const vintageProducts = products
+    .filter(p => p.condition === 'vintage' || p.title.toLowerCase().includes('vintage'))
+    .slice(0, 4);
 
-  // Fallback vintage items matching your screenshot
   const fallbackVintage = [
     {
       id: 1,
@@ -26,7 +24,7 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
       discount_price: undefined,
       discount_percentage: 0,
       final_price: 65.00,
-      main: "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w-400&h=400&fit=crop",
+      main: "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
       rating: 4.8,
       review_count: 23,
       is_featured: true,
@@ -35,7 +33,7 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
       is_new_arrival: false,
       condition: "vintage",
       short_description: "Antique glass decanter set",
-      color: "Clear"
+      color: "Clear",
     },
     {
       id: 2,
@@ -54,7 +52,7 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
       is_new_arrival: false,
       condition: "vintage",
       short_description: "Curated vintage seashell collection",
-      color: "Natural"
+      color: "Natural",
     },
     {
       id: 3,
@@ -73,7 +71,7 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
       is_new_arrival: false,
       condition: "vintage",
       short_description: "Ornate antique wall mirror",
-      color: "Gold"
+      color: "Gold",
     },
     {
       id: 4,
@@ -92,8 +90,8 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
       is_new_arrival: false,
       condition: "vintage",
       short_description: "Rustic wooden display rack",
-      color: "Brown"
-    }
+      color: "Brown",
+    },
   ];
 
   const displayProducts = vintageProducts.length > 0 ? vintageProducts : fallbackVintage;
@@ -101,18 +99,22 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
   return (
     <section className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Left Text Block - Exactly matching screenshot */}
+
+        {/* Left Text Block */}
         <div className="flex flex-col justify-center lg:pr-8">
           <p className="text-sm text-gray-500 font-medium mb-2 uppercase tracking-wider">
-            Editors' Picks
+            Editors&apos; Picks
           </p>
-          <h2 className="text-2xl md:text-3xl font-serif font-medium text-gray-900 mb-4 leading-tight">
-            Etsy's Guide to Vintage
+          <h2
+            className="text-2xl md:text-3xl font-medium text-gray-900 mb-4 leading-tight"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          >
+            Etsy&apos;s Guide to Vintage
           </h2>
           <p className="text-gray-700 mb-6 leading-relaxed text-sm md:text-base">
             Discover timeless denim, heirloom jewellery, antique decor, and more from small shops.
           </p>
-          <Link 
+          <Link
             href="/products?condition=vintage"
             className="inline-flex items-center justify-center w-fit px-6 py-3 border-2 border-gray-900 text-gray-900 rounded-full font-medium hover:bg-gray-900 hover:text-white transition-all duration-300 group"
           >
@@ -124,13 +126,12 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
         {/* Vintage Items Grid */}
         <div className="lg:col-span-3 grid grid-cols-2 md:grid-cols-4 gap-4">
           {displayProducts.map((product, index) => (
-            <Link 
+            <Link
               key={product.id}
               href={`/product/${product.slug}`}
               className="group relative rounded-xl overflow-hidden aspect-square bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 block"
             >
               <div className="relative w-full h-full">
-                {/* Product Image */}
                 {product.main ? (
                   <Image
                     src={product.main}
@@ -140,21 +141,19 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
                     sizes="(max-width: 768px) 50vw, 25vw"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-5xl">
-                    🏺
-                  </div>
+                  <div className="w-full h-full flex items-center justify-center text-5xl">🏺</div>
                 )}
-                
+
                 {/* Vintage Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
+
                 {/* Favorite Button */}
-                <button 
+                <button
+                  aria-label={`Add ${product.title} to favourites`}
                   className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-white transition-all duration-300 hover:scale-110 shadow-sm z-10"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('Add to favorites:', product.id);
                   }}
                 >
                   <Heart className="h-4 w-4 text-gray-700" />
@@ -168,7 +167,7 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
                   </div>
                 )}
 
-                {/* Price Badge - Only show on the 4th item like screenshot */}
+                {/* Price Badge on 4th item */}
                 {index === 3 && (
                   <div className="absolute bottom-3 left-3">
                     <div className="price-badge bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm">
@@ -185,6 +184,7 @@ const EditorsPicksVintage: React.FC<EditorsPicksVintageProps> = ({ products = []
             </Link>
           ))}
         </div>
+
       </div>
     </section>
   );
