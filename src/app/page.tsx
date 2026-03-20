@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react';
-// import Header from "../components/Header";
 import HeroBanner from "../components/HeroBanner";
 import FeaturedInterests from "../components/FeaturedInterests";
 import DiscoverSection from "../components/DiscoverSection";
@@ -12,7 +11,6 @@ import TodaysDeals from "../components/TodaysDeals";
 import EditorsPicksVintage from "../components/EditorsPicksVintage";
 import WhatIsEtsy from "../components/WhatIsEtsy";
 import Subscribe from '@/components/Subscribe';
-// import Footer from "../components/Footer";
 import { apiService } from '@/services/api';
 import type { HomepageData } from '@/services/api';
 
