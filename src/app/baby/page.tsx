@@ -493,8 +493,7 @@ export default function BabyPage() {
       {/* Hero heading */}
       <header className="text-center py-9 pb-7">
         <h1
-          className="text-[clamp(28px,4vw,42px)] font-normal text-gray-900 mb-2"
-          style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+          className="text-[clamp(28px,4vw,42px)] font-normal text-gray-900 mb-2 [font-family:'Playfair_Display',Georgia,serif]"
         >
           Baby
         </h1>
