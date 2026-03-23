@@ -1,3 +1,4 @@
+// services/auth.ts
 import { apiService } from "./api";
 
 export interface SignInData {
@@ -32,29 +33,74 @@ export interface AuthResponse {
   error?: string;
   data?: any;
   user?: User;
+  access?: string;
+  refresh?: string;
+}
+
+class AuthTokenManager {
+  private static instance: AuthTokenManager;
+  private accessToken: string | null = null;
+  private refreshToken: string | null = null;
+
+  static getInstance(): AuthTokenManager {
+    if (!AuthTokenManager.instance) {
+      AuthTokenManager.instance = new AuthTokenManager();
+    }
+    return AuthTokenManager.instance;
+  }
+
+  setTokens(access: string, refresh: string) {
+    this.accessToken = access;
+    this.refreshToken = refresh;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+    }
+  }
+
+  getAccessToken(): string | null {
+    if (this.accessToken) return this.accessToken;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('access_token');
+    }
+    return null;
+  }
+
+  getRefreshToken(): string | null {
+    if (this.refreshToken) return this.refreshToken;
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('refresh_token');
+    }
+    return null;
+  }
+
+  clearTokens() {
+    this.accessToken = null;
+    this.refreshToken = null;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+    }
+  }
 }
 
 class AuthService {
   private user: User | null = null;
   private listeners: (() => void)[] = [];
+  private tokenManager = AuthTokenManager.getInstance();
 
   constructor() {
-    // Load user from session on initialization
     this.loadUser();
   }
 
   private async loadUser() {
-    try {
-      const token = this.getToken();
-      if (token) {
-        const user = await this.getProfile();
-        if (user && !("error" in user)) {
-          this.user = user as User;
-          this.notifyListeners();
-        }
+    const token = this.tokenManager.getAccessToken();
+    if (token) {
+      const user = await this.getProfile();
+      if (user && !("error" in user)) {
+        this.user = user as User;
+        this.notifyListeners();
       }
-    } catch (error) {
-      console.error("Failed to load user:", error);
     }
   }
 
@@ -69,26 +115,6 @@ class AuthService {
     };
   }
 
-  getToken(): string | null {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("access_token");
-    }
-    return null;
-  }
-
-  setToken(token: string) {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("access_token", token);
-    }
-  }
-
-  removeToken() {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-    }
-  }
-  // In auth.ts, update the signIn, register, and updateProfile methods
-
   async signIn(data: SignInData): Promise<AuthResponse> {
     try {
       const response = await apiService.fetchData<any>("/users/login/", {
@@ -100,14 +126,21 @@ class AuthService {
       if (response.error) {
         return { error: response.error };
       }
+      
+      // Store tokens
+      if (response.access && response.refresh) {
+        this.tokenManager.setTokens(response.access, response.refresh);
+      }
+      
       this.user = response.user;
-      this.setToken("authenticated");
       this.notifyListeners();
 
-       return {
-      Message: response.message || "Login successful",
-      user: response.user,
-    };
+      return {
+        Message: response.message || "Login successful",
+        user: response.user,
+        access: response.access,
+        refresh: response.refresh,
+      };
     } catch (error: any) {
       console.error("Sign in error:", error);
       return {
@@ -118,22 +151,32 @@ class AuthService {
 
   async register(data: RegisterData): Promise<AuthResponse> {
     try {
-      const response = await apiService.fetchData<any>("/users/register/",{
+      const response = await apiService.fetchData<any>("/users/register/", {
         useCache: false,
         method: "POST",
         body: data,
       });
-      if (response.error){
-        return {error: response.error}
+      
+      if (response.error) {
+        return { error: response.error };
       }
-      return{
-        Message: response.Message || "Registration successful! Please check your email.",
+      
+      // Store tokens on registration
+      if (response.access && response.refresh) {
+        this.tokenManager.setTokens(response.access, response.refresh);
+        this.user = response.user;
+        this.notifyListeners();
+      }
+      
+      return {
+        Message: response.message || "Registration successful! Please check your email.",
         user: response.user,
-      }
-    
-        } catch (error: any) {
-          return { error: error.message || "Registration failed" };
-        }
+        access: response.access,
+        refresh: response.refresh,
+      };
+    } catch (error: any) {
+      return { error: error.message || "Registration failed" };
+    }
   }
 
   async updateProfile(profileData: Partial<User>): Promise<any> {
@@ -159,26 +202,6 @@ class AuthService {
     }
   }
 
-  async uploadProfileImage(userId: number, file: File): Promise<boolean> {
-    try {
-      const formData = new FormData();
-      formData.append("profile_pix", file);
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/users/update/`,
-        {
-          method: "PUT",
-          body: formData,
-          credentials: "include",
-        },
-      );
-
-      return response.ok;
-    } catch (error) {
-      console.error("Profile image upload failed:", error);
-      return false;
-    }
-  }
   async getProfile(): Promise<User | { error: string }> {
     try {
       const response = await apiService.fetchData<any>("/users/dashboard/", {
@@ -189,9 +212,7 @@ class AuthService {
         return { error: response.error };
       }
 
-      // Django's dashboard returns a welcome message
-      // You might need to adjust this based on your actual response structure
-      return response.user
+      return response.user;
     } catch (error: any) {
       return { error: error.message || "Failed to get profile" };
     }
@@ -199,14 +220,16 @@ class AuthService {
 
   async logout(): Promise<void> {
     try {
+      const refreshToken = this.tokenManager.getRefreshToken();
       await apiService.fetchData<any>("/users/logout/", {
         useCache: false,
         method: "POST",
+        body: { refresh: refreshToken },
       });
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      this.removeToken();
+      this.tokenManager.clearTokens();
       this.user = null;
       this.notifyListeners();
 
@@ -217,19 +240,16 @@ class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken() || !!this.user;
+    return !!this.tokenManager.getAccessToken();
   }
 
   getUser(): User | null {
     return this.user;
   }
 
-  async checkEmail(
-    email: string,
-  ): Promise<{ exists: boolean; error?: string }> {
+  async checkEmail(email: string): Promise<{ exists: boolean; error?: string }> {
     try {
       // Django doesn't have a built-in email check endpoint
-      // You might need to create one or just rely on registration validation
       return { exists: false };
     } catch (error) {
       return { exists: false, error: "Failed to check email" };

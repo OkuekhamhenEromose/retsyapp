@@ -391,6 +391,99 @@ class ApiCache {
 }
 const apiCache = new ApiCache();
 
+class AuthTokenManager {
+  private static instance: AuthTokenManager;
+  private accessToken: string | null = null;
+  private refreshToken: string | null = null;
+  private tokenExpiry: number | null = null;
+
+  static getInstance(): AuthTokenManager {
+    if (!AuthTokenManager.instance) {
+      AuthTokenManager.instance = new AuthTokenManager();
+    }
+    return AuthTokenManager.instance;
+  }
+
+  setTokens(
+    access: string,
+    refresh: string,
+    expiresIn: number = 3 * 24 * 60 * 60,
+  ) {
+    this.accessToken = access;
+    this.refreshToken = refresh;
+    this.tokenExpiry = Date.now() + expiresIn * 1000;
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+      localStorage.setItem("token_expiry", String(this.tokenExpiry));
+    }
+  }
+
+  getAccessToken(): string | null {
+    if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
+      return this.accessToken;
+    }
+    // Try to load from localStorage
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("access_token");
+      const expiry = localStorage.getItem("token_expiry");
+      if (stored && expiry && Date.now() < parseInt(expiry)) {
+        this.accessToken = stored;
+        this.tokenExpiry = parseInt(expiry);
+        return stored;
+      }
+    }
+    return null;
+  }
+
+  getRefreshToken(): string | null {
+    if (this.refreshToken) return this.refreshToken;
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("refresh_token");
+    }
+    return null;
+  }
+
+  async refreshAccessToken(): Promise<boolean> {
+    const refresh = this.getRefreshToken();
+    if (!refresh) return false;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/token/refresh/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        this.accessToken = data.access;
+        this.tokenExpiry = Date.now() + data.expires_in * 1000;
+        if (typeof window !== "undefined") {
+          localStorage.setItem("access_token", data.access);
+          localStorage.setItem("token_expiry", String(this.tokenExpiry));
+        }
+        return true;
+      }
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+    }
+    return false;
+  }
+
+  clearTokens() {
+    this.accessToken = null;
+    this.refreshToken = null;
+    this.tokenExpiry = null;
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("token_expiry");
+    }
+  }
+}
+
 // ─── Primitive fetch helpers ──────────────────────────────────────────────────
 
 function csrfToken(): string {
@@ -429,8 +522,10 @@ async function readFetch(url: string, init: RequestInit): Promise<Response> {
 // ─── Core service ─────────────────────────────────────────────────────────────
 export const apiService = {
   // ── Auth (long timeout, single attempt) ────────────────────────────────────
+  // In api.ts, replace the login and register methods:
+
   async login(username: string, password: string): Promise<unknown> {
-    const r = await timedFetch(
+    const response = await timedFetch(
       `${API_BASE_URL}/users/login/`,
       {
         method: "POST",
@@ -443,13 +538,27 @@ export const apiService = {
       },
       TIMEOUT_MS.auth_write,
     );
-    return r.json();
+
+    const data = await response.json();
+
+    // Store tokens if login was successful
+    if (data.access && data.refresh) {
+      const tokenManager = AuthTokenManager.getInstance();
+      tokenManager.setTokens(
+        data.access,
+        data.refresh,
+        data.expires_in || 3 * 24 * 60 * 60,
+      );
+      console.log("[API] Tokens stored successfully");
+    } else {
+      console.log("[API] No tokens in login response:", data);
+    }
+
+    return data;
   },
 
   async register(userData: unknown): Promise<unknown> {
-    // *** KEY FIX: 30s timeout, NO retry — this is an idempotent write that
-    //     may be slow because Django sends an email synchronously. ***
-    const r = await timedFetch(
+    const response = await timedFetch(
       `${API_BASE_URL}/users/register/`,
       {
         method: "POST",
@@ -462,7 +571,17 @@ export const apiService = {
       },
       TIMEOUT_MS.auth_write,
     );
-    return r.json();
+
+    const data = await response.json();
+
+    // Store tokens if registration was successful
+    if (data.access && data.refresh) {
+      const tokenManager = AuthTokenManager.getInstance();
+      tokenManager.setTokens(data.access, data.refresh);
+      console.log("[API] Tokens stored after registration");
+    }
+
+    return data;
   },
 
   async logout(): Promise<unknown> {
@@ -576,23 +695,62 @@ export const apiService = {
 
     try {
       console.log(`[API Request] ${method} ${url}`);
-      const isWrite = method !== "GET";
+
+      // Get JWT token
+      const tokenManager = AuthTokenManager.getInstance();
+      let accessToken = tokenManager.getAccessToken();
+
+      // Try to refresh if token is expired
+      if (!accessToken && tokenManager.getRefreshToken()) {
+        const refreshed = await tokenManager.refreshAccessToken();
+        if (refreshed) {
+          accessToken = tokenManager.getAccessToken();
+        }
+      }
+
       const init: RequestInit = {
         method,
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken(),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           ...(headers ?? {}),
         },
         ...(body ? { body: JSON.stringify(body) } : {}),
       };
 
+      const isWrite = method !== "GET";
       const res = isWrite
         ? await timedFetch(url, init, TIMEOUT_MS.auth_write)
         : await readFetch(url, init);
 
       if (!res.ok) {
+        // If token expired, try refresh once
+        if (res.status === 401 && accessToken) {
+          const refreshed = await tokenManager.refreshAccessToken();
+          if (refreshed) {
+            // Retry with new token
+            const newInit = { ...init };
+            newInit.headers = {
+              ...init.headers,
+              Authorization: `Bearer ${tokenManager.getAccessToken()}`,
+            };
+            const retryRes = await timedFetch(
+              url,
+              newInit,
+              isWrite ? TIMEOUT_MS.auth_write : TIMEOUT_MS.read,
+            );
+            if (retryRes.ok) {
+              const data = await retryRes.json();
+              if (useCache && cacheKey && method === "GET") {
+                apiCache.set(cacheKey, data, cacheTTL);
+              }
+              return data as T;
+            }
+          }
+        }
+
         const text = await res.text();
         throw {
           message: `API error: ${res.status}`,
@@ -651,9 +809,7 @@ export const apiService = {
       params: p,
     });
   },
-  async getProducts(
-    p?: Record<string, string>,
-  ): Promise<{
+  async getProducts(p?: Record<string, string>): Promise<{
     count: number;
     next: string | null;
     previous: string | null;
@@ -776,29 +932,98 @@ export const apiService = {
   },
 
   // ── Cart ───────────────────────────────────────────────────────────────────
-  async addToCart(
-    slug: string,
-    quantity = 1,
-    sizeId?: number,
-  ): Promise<unknown> {
-    if (USE_MOCK_DATA)
-      return { message: "Item added to cart", cart_item_id: Date.now() };
-    const r = await timedFetch(
-      `${API_BASE_URL}/add-to-cart/${slug}/`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": csrfToken(),
-        },
-        body: JSON.stringify({ quantity, size_id: sizeId }),
-      },
-      TIMEOUT_MS.cart_write,
-    );
-    apiCache.clearPattern("cart:*");
-    return r.json();
-  },
+  // In api.ts, replace the addToCart function with this:
+
+  // In api.ts, replace the addToCart method:
+
+async addToCart(
+  slug: string,
+  quantity = 1,
+  sizeId?: number,
+  variantId?: number,
+  personalizations?: any[]
+): Promise<unknown> {
+  if (USE_MOCK_DATA)
+    return { message: "Item added to cart", cart_item_id: Date.now() };
+  
+  // Get JWT token
+  const tokenManager = AuthTokenManager.getInstance();
+  let accessToken = tokenManager.getAccessToken();
+  
+  console.log('[AddToCart] Current token:', accessToken ? `${accessToken.substring(0, 20)}...` : 'null');
+  
+  const requestBody = JSON.stringify({ 
+    quantity, 
+    size_id: sizeId,
+    variant_id: variantId,
+    personalizations 
+  });
+  
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    "X-CSRFToken": csrfToken(),
+  };
+  
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+    console.log('[AddToCart] Added Authorization header');
+  } else {
+    console.log('[AddToCart] No token available, request will likely fail with 401');
+  }
+  
+  const response = await timedFetch(
+    `${API_BASE_URL}/cart/add-enhanced/${slug}/`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers,
+      body: requestBody,
+    },
+    TIMEOUT_MS.cart_write,
+  );
+  
+  console.log('[AddToCart] Response status:', response.status);
+  
+  if (!response.ok) {
+    // If token expired, try to refresh
+    if (response.status === 401 && accessToken) {
+      console.log('[AddToCart] Token expired, attempting refresh...');
+      const refreshed = await tokenManager.refreshAccessToken();
+      if (refreshed) {
+        const newToken = tokenManager.getAccessToken();
+        console.log('[AddToCart] Token refreshed, retrying...');
+        const retryResponse = await timedFetch(
+          `${API_BASE_URL}/cart/add-enhanced/${slug}/`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrfToken(),
+              "Authorization": `Bearer ${newToken}`,
+            },
+            body: requestBody,
+          },
+          TIMEOUT_MS.cart_write,
+        );
+        if (retryResponse.ok) {
+          const data = await retryResponse.json();
+          apiCache.clearPattern("cart:*");
+          return data;
+        }
+      }
+    }
+    
+    const errorText = await response.text();
+    console.error('[AddToCart] Failed:', response.status, errorText);
+    throw new Error(`Add to cart failed: ${response.status} - ${errorText}`);
+  }
+  
+  const data = await response.json();
+  apiCache.clearPattern("cart:*");
+  return data;
+},
+
   async getCart(): Promise<unknown> {
     if (USE_MOCK_DATA) return { items: [], total: 0 };
     return this.fetchData("/my-cart/", { cacheKey: "cart", cacheTTL: 60_000 });
