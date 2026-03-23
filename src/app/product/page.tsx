@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./ProductDetailPage.module.css";
+import { useCart } from "@/context/CartContext";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface ProductVariant {
@@ -596,20 +597,57 @@ function SaleTimer({ initial }: { initial: { hours: number; minutes: number; sec
 
 // ─── Product Panel ────────────────────────────────────────────────────────────
 function ProductPanel({ product }: { product: Product }) {
+  const { addToCart } = useCart();
+
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     product.variants?.find((v) => v.is_default) ?? null
   );
-  const [quantity, setQuantity]           = useState("1");
+  const [quantity, setQuantity]             = useState("1");
   const [personalValues, setPersonalValues] = useState<Record<string, string>>({});
-  const [addedToCart, setAddedToCart]     = useState(false);
-  const [detailsOpen, setDetailsOpen]     = useState(true);
+  const [addedToCart, setAddedToCart]       = useState(false);
+  const [addError, setAddError]             = useState<string | null>(null);
+  const [isAdding, setIsAdding]             = useState(false);
+  const [detailsOpen, setDetailsOpen]       = useState(true);
 
   const currentPrice = selectedVariant ? selectedVariant.final_price : product.final_price;
 
-  const handleAddToCart = () => {
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
-  };
+  const handleAddToCart = useCallback(async () => {
+    if (isAdding) return;
+    setIsAdding(true);
+    setAddError(null);
+
+    const personalizations = Object.entries(personalValues)
+      .filter(([, v]) => v.trim() !== '')
+      .map(([field_name, value]) => ({ field_name, value }));
+
+    const { success, error } = await addToCart({
+      product_id:          product.id,
+      product_name:        product.title,
+      product_slug:        product.slug,
+      product_image:       selectedVariant?.image ?? product.main,
+      price_per_unit:      currentPrice,
+      original_price:      product.price !== currentPrice ? product.price : null,
+      discount_percentage: product.discount_percentage,
+      quantity:            parseInt(quantity, 10) || 1,
+      variant_id:          selectedVariant?.id ?? null,
+      variant_color:       selectedVariant?.color ?? '',
+      variant_design:      selectedVariant?.design ?? '',
+      variant_color_code:  selectedVariant?.color_code ?? '',
+      seller_id:           0,
+      seller_name:         product.seller_name ?? product.brand ?? 'Shop',
+      seller_rating:       product.rating ?? 0,
+      seller_review_count: product.review_count ?? 0,
+      personalizations,
+    });
+
+    setIsAdding(false);
+    if (success) {
+      setAddedToCart(true);
+      setTimeout(() => setAddedToCart(false), 3000);
+    } else {
+      setAddError(error ?? 'Failed to add to basket');
+    }
+  }, [isAdding, personalValues, product, currentPrice, quantity, selectedVariant, addToCart]);
 
   const deliveryMin = new Date();
   deliveryMin.setDate(deliveryMin.getDate() + (product.delivery_policy?.estimated_delivery_min ?? 6));
@@ -761,10 +799,28 @@ function ProductPanel({ product }: { product: Product }) {
         </button>
         <button
           onClick={handleAddToCart}
-          className={`w-full py-3.5 rounded-full border-0 text-white text-sm font-bold cursor-pointer transition-colors ${addedToCart ? "bg-green-700" : "bg-gray-900 hover:bg-gray-700"}`}
+          disabled={isAdding}
+          className={`w-full py-3.5 rounded-full border-0 text-white text-sm font-bold cursor-pointer transition-all ${
+            addedToCart
+              ? 'bg-green-700'
+              : isAdding
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-gray-900 hover:bg-gray-700'
+          }`}
         >
-          {addedToCart ? "Added to basket!" : "Add to basket"}
+          {addedToCart ? '✓ Added to basket!' : isAdding ? 'Adding…' : 'Add to basket'}
         </button>
+        {addError && (
+          <p className="text-[12px] text-red-600 text-center -mt-1">{addError}</p>
+        )}
+        {addedToCart && (
+          <a
+            href="/basket"
+            className="block w-full py-2.5 rounded-full border-2 border-[#F1641E] text-[#F1641E] text-sm font-bold text-center hover:bg-orange-50 transition-colors"
+          >
+            View basket →
+          </a>
+        )}
         <button className="w-full py-3 rounded-full border border-gray-200 bg-white text-gray-500 text-sm cursor-pointer flex items-center justify-center gap-2 hover:border-gray-400 transition-colors">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="#e05260">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
