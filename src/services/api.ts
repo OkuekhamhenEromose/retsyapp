@@ -2,17 +2,26 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 const USE_MOCK_DATA = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
-// Cache configuration for different endpoint types
-const CACHE_CONFIG = {
-  HOMEPAGE: { revalidate: 300 }, // 5 minutes
-  CATEGORIES: { revalidate: 3600 }, // 1 hour
-  PRODUCTS: { revalidate: 600 }, // 10 minutes
-  DEALS: { revalidate: 300 }, // 5 minutes
-  GIFT_GUIDES: { revalidate: 1800 }, // 30 minutes
-  USER_DATA: { revalidate: 60 }, // 1 minute
+// ─── Per-operation timeout budgets ───────────────────────────────────────────
+// Auth writes can be slow: registration triggers email sending + bcrypt.
+// DO NOT share the same AbortController between register and a 10s timeout —
+// that is the root cause of the "AbortError: signal is aborted without reason".
+const TIMEOUT_MS = {
+  auth_write: 30_000, // 30 s — register / login / logout
+  read: 12_000, // 12 s — all GET requests
+  cart_write: 8_000, //  8 s — cart mutations
 };
 
-// Export all interfaces (keep your existing interfaces)
+const CACHE_TTL = {
+  HOMEPAGE: 300_000,
+  CATEGORIES: 3_600_000,
+  PRODUCTS: 600_000,
+  DEALS: 300_000,
+  GIFT_GUIDES: 1_800_000,
+  USER_DATA: 60_000,
+};
+
+// ─── Exported types (unchanged from original) ─────────────────────────────────
 export interface HomepageData {
   hero_banner: {
     message: string;
@@ -21,10 +30,7 @@ export interface HomepageData {
   };
   featured_interests: Category[];
   discover_section: Category[];
-  birthday_gifts: {
-    categories: Category[];
-    products: Product[];
-  };
+  birthday_gifts: { categories: Category[]; products: Product[] };
   gift_categories: Category[];
   categories: CategoryWithDetails[];
   todays_deals: Product[];
@@ -35,7 +41,6 @@ export interface HomepageData {
   bestseller_products: Product[];
   new_arrival_products: Product[];
 }
-
 export interface Category {
   id: number;
   title: string;
@@ -46,12 +51,10 @@ export interface Category {
   parent_id?: number | null;
   category_type?: string;
 }
-
 export interface CategoryWithDetails extends Category {
   subcategories: Category[];
   featured_products: Product[];
 }
-
 export interface Product {
   id: number;
   title: string;
@@ -76,7 +79,6 @@ export interface Product {
   freeDelivery?: boolean;
   saleBadge?: string;
 }
-
 export interface HomepageSection {
   id: number;
   title: string;
@@ -86,7 +88,6 @@ export interface HomepageSection {
   order: number;
   products: Product[];
 }
-
 export interface GiftGuideSection {
   id: number;
   title: string;
@@ -94,9 +95,9 @@ export interface GiftGuideSection {
   description: string | null;
   image: string | null;
   background_image: string | null;
-  guide_links?: Array<{ title: string; url: string }>;
+  guide_links?: { title: string; url: string }[];
   featured_products: Product[];
-  gift_products: Array<{
+  gift_products: {
     id: number;
     etsy_pick: boolean;
     custom_title: string | null;
@@ -104,9 +105,8 @@ export interface GiftGuideSection {
     shop_name: string | null;
     badge_text: string | null;
     product: Product;
-  }>;
+  }[];
 }
-
 export interface GiftsPageData {
   best_gift_guides: GiftGuideSection[];
   valentines_gifts: GiftGuideSection[];
@@ -119,7 +119,6 @@ export interface GiftsPageData {
   page_title: string;
   page_description: string;
 }
-
 export interface BestOfValentineData {
   section: {
     id: number;
@@ -131,17 +130,12 @@ export interface BestOfValentineData {
   products: Product[];
   related_searches: string[];
   filters: {
-    price_options: Array<{ value: string; label: string }>;
-    sort_options: Array<{ value: string; label: string }>;
-    shipping_options: Array<{ value: string; label: string }>;
+    price_options: { value: string; label: string }[];
+    sort_options: { value: string; label: string }[];
+    shipping_options: { value: string; label: string }[];
   };
-  current_filters: {
-    price: string;
-    on_sale: boolean;
-    etsy_picks: boolean;
-  };
+  current_filters: { price: string; on_sale: boolean; etsy_picks: boolean };
 }
-
 export interface HomeFavouritesData {
   section: {
     id: number;
@@ -149,46 +143,19 @@ export interface HomeFavouritesData {
     description: string;
     section_type: string;
   };
-  hero_categories: Array<{
-    title: string;
-    image: string;
-    slug: string;
-  }>;
+  hero_categories: { title: string; image: string; slug: string }[];
   home_categories: Category[];
-  small_shops: Array<{
+  small_shops: {
     name: string;
     rating: number;
     reviewCount: string;
     images: string[];
-  }>;
+  }[];
   spring_linens_products: Product[];
   reorganizing_products: Product[];
-  discover_categories: Array<{
-    title: string;
-    image: string;
-    slug: string;
-  }>;
-  filters: {
-    price_options: Array<{ value: string; label: string }>;
-  };
+  discover_categories: { title: string; image: string; slug: string }[];
+  filters: { price_options: { value: string; label: string }[] };
 }
-
-export interface FashionFindsData {
-  hero_title: string;
-  hero_description: string;
-  hero_categories: Category[];
-  shops_we_love: FashionShop[];
-  personalised_clothes_products: Product[];
-  unique_handbags_products: Product[];
-  personalised_jewellery_products: Product[];
-  promo_cards: FashionPromoCard[];
-  trending: FashionTrending[];
-  discover_more: FashionDiscover[];
-  filters: {
-    price_options: Array<{ value: string; label: string }>;
-  };
-}
-
 export interface FashionShop {
   id: number;
   name: string;
@@ -203,7 +170,6 @@ export interface FashionShop {
   order: number;
   is_featured: boolean;
 }
-
 export interface FashionPromoCard {
   id: number;
   title: string;
@@ -215,7 +181,6 @@ export interface FashionPromoCard {
   order: number;
   is_active: boolean;
 }
-
 export interface FashionTrending {
   id: number;
   title: string;
@@ -226,7 +191,6 @@ export interface FashionTrending {
   button_url: string;
   is_active: boolean;
 }
-
 export interface FashionDiscover {
   id: number;
   title: string;
@@ -235,7 +199,19 @@ export interface FashionDiscover {
   order: number;
   is_active: boolean;
 }
-
+export interface FashionFindsData {
+  hero_title: string;
+  hero_description: string;
+  hero_categories: Category[];
+  shops_we_love: FashionShop[];
+  personalised_clothes_products: Product[];
+  unique_handbags_products: Product[];
+  personalised_jewellery_products: Product[];
+  promo_cards: FashionPromoCard[];
+  trending: FashionTrending[];
+  discover_more: FashionDiscover[];
+  filters: { price_options: { value: string; label: string }[] };
+}
 export interface GiftOccasion {
   id: number;
   label: string;
@@ -244,14 +220,12 @@ export interface GiftOccasion {
   slug: string;
   order: number;
 }
-
 export interface GiftInterest {
   id: number;
   name: string;
   slug: string;
   order: number;
 }
-
 export interface GiftPersona {
   id: number;
   name: string;
@@ -265,17 +239,6 @@ export interface GiftPersona {
   slug: string;
   order: number;
 }
-
-export interface GiftCollection {
-  id: number;
-  persona: GiftPersona;
-  title: string;
-  slug: string;
-  description?: string;
-  interest_tag?: string;
-  products: GiftProduct[];
-}
-
 export interface GiftProduct {
   id: number;
   title: string;
@@ -299,7 +262,15 @@ export interface GiftProduct {
   has_video?: boolean;
   saleBadge?: string;
 }
-
+export interface GiftCollection {
+  id: number;
+  persona: GiftPersona;
+  title: string;
+  slug: string;
+  description?: string;
+  interest_tag?: string;
+  products: GiftProduct[];
+}
 export interface GiftRecipientItem {
   id: number;
   title: string;
@@ -307,7 +278,6 @@ export interface GiftRecipientItem {
   slug: string;
   order: number;
 }
-
 export interface GiftRecipient {
   id: number;
   label: string;
@@ -316,7 +286,6 @@ export interface GiftRecipient {
   order: number;
   items: GiftRecipientItem[];
 }
-
 export interface GiftGridItem {
   id: number;
   title: string;
@@ -325,14 +294,12 @@ export interface GiftGridItem {
   slug: string;
   order: number;
 }
-
 export interface PopularGiftCategory {
   id: number;
   name: string;
   slug: string;
   order: number;
 }
-
 export interface GiftFinderData {
   hero_occasions: GiftOccasion[];
   browse_interests: GiftInterest[];
@@ -344,14 +311,12 @@ export interface GiftFinderData {
   gift_grid_items: GiftGridItem[];
   popular_gift_categories: PopularGiftCategory[];
 }
-
 export interface GiftTeaserFeature {
   id: number;
   icon: string;
   text: string;
   order: number;
 }
-
 export interface GiftTeaserBanner {
   id: number;
   title: string;
@@ -361,7 +326,6 @@ export interface GiftTeaserBanner {
   is_active: boolean;
   order: number;
 }
-
 export interface GiftCardBanner {
   id: number;
   title: string;
@@ -374,7 +338,6 @@ export interface GiftCardBanner {
   is_active: boolean;
   order: number;
 }
-
 export interface AboutGiftFinder {
   id: number;
   title: string;
@@ -384,159 +347,198 @@ export interface AboutGiftFinder {
   button_text_less: string;
   is_active: boolean;
 }
-
 export interface GiftTeaserData {
   teaser_banner: GiftTeaserBanner | null;
   gift_card_banner: GiftCardBanner | null;
   about_section: AboutGiftFinder | null;
   featured_product: Product | null;
 }
-
 export interface MarkAsGiftResponse {
   message: string;
   cart_product_id: number;
   error?: string;
 }
-
 export interface ApiError {
   message: string;
   status?: number;
-  details?: any;
+  details?: unknown;
 }
 
-// ========== CACHE UTILITY ==========
+// ─── Client-side in-memory cache ─────────────────────────────────────────────
 class ApiCache {
-  private cache: Map<string, { data: any; timestamp: number }> = new Map();
-  private defaultTTL = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-  set(key: string, data: any, ttl: number = this.defaultTTL) {
-    this.cache.set(key, {
-      data,
-      timestamp: Date.now() + ttl,
-    });
+  private cache = new Map<string, { data: unknown; expiresAt: number }>();
+  set(key: string, data: unknown, ttl: number) {
+    this.cache.set(key, { data, expiresAt: Date.now() + ttl });
   }
-
-  get(key: string): any | null {
+  get(key: string): unknown | null {
     const item = this.cache.get(key);
     if (!item) return null;
-    if (Date.now() > item.timestamp) {
+    if (Date.now() > item.expiresAt) {
       this.cache.delete(key);
       return null;
     }
     return item.data;
   }
-
   clear() {
     this.cache.clear();
   }
-
   clearPattern(pattern: string) {
-    const regex = new RegExp(pattern.replace("*", ".*"));
+    const re = new RegExp(pattern.replace("*", ".*"));
     for (const key of this.cache.keys()) {
-      if (regex.test(key)) {
-        this.cache.delete(key);
-      }
+      if (re.test(key)) this.cache.delete(key);
     }
   }
 }
-
 const apiCache = new ApiCache();
 
-// ========== API SERVICE ==========
-export const apiService = {
-  async login(username: string, password: string): Promise<any> {
-    const response = await this.fetchWithRetry(`${API_BASE_URL}/users/login/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-      credentials: "include", // Important for cookies
-    });
+// ─── Primitive fetch helpers ──────────────────────────────────────────────────
 
-    return response.json();
+function csrfToken(): string {
+  if (typeof document === "undefined") return "";
+  const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+  return m ? decodeURIComponent(m[1]) : "";
+}
+
+/** Single fetch attempt with a hard timeout. */
+function timedFetch(
+  url: string,
+  init: RequestInit,
+  ms: number,
+): Promise<Response> {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...init, signal: ctrl.signal }).finally(() =>
+    clearTimeout(id),
+  );
+}
+
+/** Read fetch: up to 2 tries with back-off. */
+async function readFetch(url: string, init: RequestInit): Promise<Response> {
+  let last: unknown;
+  for (let i = 0; i < 2; i++) {
+    try {
+      return await timedFetch(url, init, TIMEOUT_MS.read);
+    } catch (e) {
+      last = e;
+      if (i === 0) await new Promise((r) => setTimeout(r, 700));
+    }
+  }
+  throw last;
+}
+
+// ─── Core service ─────────────────────────────────────────────────────────────
+export const apiService = {
+  // ── Auth (long timeout, single attempt) ────────────────────────────────────
+  async login(username: string, password: string): Promise<unknown> {
+    const r = await timedFetch(
+      `${API_BASE_URL}/users/login/`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: JSON.stringify({ username, password }),
+      },
+      TIMEOUT_MS.auth_write,
+    );
+    return r.json();
   },
 
-  async register(userData: any): Promise<any> {
-    const response = await this.fetchWithRetry(
+  async register(userData: unknown): Promise<unknown> {
+    // *** KEY FIX: 30s timeout, NO retry — this is an idempotent write that
+    //     may be slow because Django sends an email synchronously. ***
+    const r = await timedFetch(
       `${API_BASE_URL}/users/register/`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: JSON.stringify(userData),
       },
+      TIMEOUT_MS.auth_write,
     );
-
-    return response.json();
+    return r.json();
   },
 
-  async logout(): Promise<any> {
-    const response = await this.fetchWithRetry(
+  async logout(): Promise<unknown> {
+    const r = await timedFetch(
       `${API_BASE_URL}/users/logout/`,
       {
         method: "POST",
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
       },
+      TIMEOUT_MS.auth_write,
     );
-
-    return response.json();
+    return r.json();
   },
 
-  async getDashboard(): Promise<any> {
+  async getDashboard(): Promise<unknown> {
     return this.fetchData("/users/dashboard/", {
       cacheKey: "dashboard",
-      cacheTTL: 60000, // 1 minute
+      cacheTTL: CACHE_TTL.USER_DATA,
     });
   },
 
-  async updateProfile(profileData: any): Promise<any> {
-    const response = await this.fetchWithRetry(
+  async updateProfile(data: unknown): Promise<unknown> {
+    const r = await timedFetch(
       `${API_BASE_URL}/users/update/`,
       {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profileData),
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: JSON.stringify(data),
       },
+      TIMEOUT_MS.auth_write,
     );
-
-    return response.json();
+    return r.json();
   },
 
-  // Helper method for fetch with timeout and retry
+  // Keep for backwards compatibility with callers that use fetchWithRetry directly
   async fetchWithRetry(
     url: string,
     options: RequestInit = {},
-    retries = 2,
+    retries = 1,
   ): Promise<Response> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-
-    for (let i = 0; i <= retries; i++) {
+    const isWrite = options.method && options.method !== "GET";
+    const ms = isWrite ? TIMEOUT_MS.auth_write : TIMEOUT_MS.read;
+    const attempts = isWrite ? 1 : retries + 1;
+    let last: unknown;
+    for (let i = 0; i < attempts; i++) {
       try {
-        const response = await fetch(url, {
-          ...options,
-          signal: controller.signal,
-          headers: {
-            "Content-Type": "application/json",
-            "Accept-Encoding": "gzip, deflate", // Support compression
-            ...options.headers,
+        return await timedFetch(
+          url,
+          {
+            ...options,
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": csrfToken(),
+              ...(options.headers ?? {}),
+            },
           },
-        });
-        clearTimeout(timeoutId);
-        return response;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        if (i === retries) throw error;
-        // Exponential backoff
-        await new Promise((resolve) =>
-          setTimeout(resolve, Math.pow(2, i) * 1000),
+          ms,
         );
+      } catch (e) {
+        last = e;
+        if (i < attempts - 1) await new Promise((r) => setTimeout(r, 700));
       }
     }
-    throw new Error("Max retries exceeded");
+    throw last;
   },
 
-  // Generic fetch method with caching and error handling
+  // ── Generic cached GET / write ─────────────────────────────────────────────
   async fetchData<T>(
     endpoint: string,
     options: {
@@ -545,27 +547,23 @@ export const apiService = {
       cacheTTL?: number;
       params?: Record<string, string>;
       method?: string;
-      body?: any;
+      body?: unknown;
       headers?: Record<string, string>;
     } = {},
   ): Promise<T> {
     const {
       useCache = true,
       cacheKey,
-      cacheTTL,
+      cacheTTL = CACHE_TTL.PRODUCTS,
       params,
       method = "GET",
       body,
       headers,
     } = options;
 
-    // Build URL with query params
-    const queryString = params
-      ? `?${new URLSearchParams(params).toString()}`
-      : "";
-    const url = `${API_BASE_URL}${endpoint}${queryString}`;
+    const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
+    const url = `${API_BASE_URL}${endpoint}${qs}`;
 
-    // Check cache if enabled
     if (useCache && cacheKey && method === "GET") {
       const cached = apiCache.get(cacheKey);
       if (cached) {
@@ -574,56 +572,48 @@ export const apiService = {
       }
     }
 
-    // If mock data is enabled, return mock data
-    if (USE_MOCK_DATA) {
-      console.log(`[Mock Data] ${endpoint}`);
-      return this.getMockData(endpoint) as Promise<T>;
-    }
+    if (USE_MOCK_DATA) return this.getMockData(endpoint) as Promise<T>;
 
     try {
       console.log(`[API Request] ${method} ${url}`);
-      const fetchOptions: RequestInit = {
+      const isWrite = method !== "GET";
+      const init: RequestInit = {
         method,
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          "Accept-Encoding": "gzip, deflate",
-          ...headers,
+          "X-CSRFToken": csrfToken(),
+          ...(headers ?? {}),
         },
-        credentials: "include", // Important for cookies
+        ...(body ? { body: JSON.stringify(body) } : {}),
       };
 
-      if (body) {
-        fetchOptions.body =
-          typeof body === "string" ? body : JSON.stringify(body);
-      }
-      const response = await this.fetchWithRetry(url, fetchOptions);
+      const res = isWrite
+        ? await timedFetch(url, init, TIMEOUT_MS.auth_write)
+        : await readFetch(url, init);
 
-      if (!response.ok) {
-        const errorText = await response.text();
+      if (!res.ok) {
+        const text = await res.text();
         throw {
-          message: `API error: ${response.status}`,
-          status: response.status,
-          details: errorText,
+          message: `API error: ${res.status}`,
+          status: res.status,
+          details: text,
         };
       }
 
-      const data = await response.json();
-
-      // Cache the response if caching is enabled
+      const data = await res.json();
       if (useCache && cacheKey && method === "GET") {
         apiCache.set(cacheKey, data, cacheTTL);
         console.log(`[Cache SET] ${cacheKey}`);
       }
-
       return data as T;
-    } catch (error) {
-      console.error(`[API Error] ${endpoint}:`, error);
-      throw error;
+    } catch (err) {
+      console.error(`[API Error] ${endpoint}:`, err);
+      throw err;
     }
   },
 
-  // Mock data fallback
-  getMockData(endpoint: string): any {
+  getMockData(endpoint: string): unknown {
     if (endpoint.includes("homepage")) return this.getMockHomepageData();
     if (endpoint.includes("gifts-page")) return this.getMockGiftsPageData();
     if (endpoint.includes("best-of-valentine"))
@@ -637,446 +627,262 @@ export const apiService = {
     throw new Error(`No mock data for ${endpoint}`);
   },
 
-  // ========== HOMEPAGE ==========
+  // ── Domain methods (unchanged) ─────────────────────────────────────────────
   async getHomepageData(): Promise<HomepageData> {
-    return this.fetchData<HomepageData>("/homepage/", {
+    return this.fetchData("/homepage/", {
       cacheKey: "homepage",
-      cacheTTL: CACHE_CONFIG.HOMEPAGE.revalidate * 1000,
+      cacheTTL: CACHE_TTL.HOMEPAGE,
     });
   },
-
-  // ========== CATEGORIES ==========
-  async getCategories(params?: { [key: string]: string }): Promise<Category[]> {
-    const cacheKey = params
-      ? `categories:${JSON.stringify(params)}`
-      : "categories";
-    return this.fetchData<Category[]>("/categories/", {
-      cacheKey,
-      cacheTTL: CACHE_CONFIG.CATEGORIES.revalidate * 1000,
-      params,
+  async getCategories(p?: Record<string, string>): Promise<Category[]> {
+    return this.fetchData("/categories/", {
+      cacheKey: p ? `categories:${JSON.stringify(p)}` : "categories",
+      cacheTTL: CACHE_TTL.CATEGORIES,
+      params: p,
     });
   },
-
   async getCategoryProducts(
-    slug: string,
-    params?: { [key: string]: string },
-  ): Promise<any> {
-    const cacheKey = `category:${slug}:products:${JSON.stringify(params || {})}`;
-    return this.fetchData<any>(`/category/${slug}/products/`, {
-      cacheKey,
-      cacheTTL: CACHE_CONFIG.PRODUCTS.revalidate * 1000,
-      params,
+    s: string,
+    p?: Record<string, string>,
+  ): Promise<unknown> {
+    return this.fetchData(`/category/${s}/products/`, {
+      cacheKey: `category:${s}:products:${JSON.stringify(p || {})}`,
+      cacheTTL: CACHE_TTL.PRODUCTS,
+      params: p,
     });
   },
-
-  // ========== PRODUCTS ==========
-  async getProducts(params?: { [key: string]: string }): Promise<{
+  async getProducts(
+    p?: Record<string, string>,
+  ): Promise<{
     count: number;
     next: string | null;
     previous: string | null;
     results: Product[];
   }> {
-    const cacheKey = params ? `products:${JSON.stringify(params)}` : "products";
     return this.fetchData("/products/", {
-      cacheKey,
-      cacheTTL: CACHE_CONFIG.PRODUCTS.revalidate * 1000,
-      params,
+      cacheKey: p ? `products:${JSON.stringify(p)}` : "products",
+      cacheTTL: CACHE_TTL.PRODUCTS,
+      params: p,
     });
   },
-
-  async getProduct(slug: string): Promise<Product | null> {
-    return this.fetchData<Product>(`/product/${slug}/`, {
-      cacheKey: `product:${slug}`,
-      cacheTTL: CACHE_CONFIG.PRODUCTS.revalidate * 1000,
+  async getProduct(s: string): Promise<Product | null> {
+    return this.fetchData(`/product/${s}/`, {
+      cacheKey: `product:${s}`,
+      cacheTTL: CACHE_TTL.PRODUCTS,
     });
   },
-
-  // ========== DEALS ==========
-  async getTop100Gifts(
-    random: boolean = true,
-    count: number = 20,
-  ): Promise<any> {
+  async getTop100Gifts(r = true, c = 20): Promise<unknown> {
     return this.fetchData("/top-100-gifts/", {
-      cacheKey: `top100:${random}:${count}`,
-      cacheTTL: CACHE_CONFIG.DEALS.revalidate * 1000,
-      params: { random: String(random), count: String(count) },
+      cacheKey: `top100:${r}:${c}`,
+      cacheTTL: CACHE_TTL.DEALS,
+      params: { random: String(r), count: String(c) },
     });
   },
-
-  // ========== NAVIGATION ==========
-  async getNavigation(): Promise<any> {
+  async getNavigation(): Promise<unknown> {
     return this.fetchData("/navigation/", {
       cacheKey: "navigation",
-      cacheTTL: CACHE_CONFIG.CATEGORIES.revalidate * 1000,
+      cacheTTL: CACHE_TTL.CATEGORIES,
     });
   },
-
-  // ========== GIFTS PAGE ==========
   async getGiftsPageData(): Promise<GiftsPageData> {
-    return this.fetchData<GiftsPageData>("/gifts-page/", {
+    return this.fetchData("/gifts-page/", {
       cacheKey: "gifts-page",
-      cacheTTL: CACHE_CONFIG.GIFT_GUIDES.revalidate * 1000,
+      cacheTTL: CACHE_TTL.GIFT_GUIDES,
     });
   },
-
-  async getGiftGuideSection(sectionType: string): Promise<{
-    section: GiftGuideSection;
-    products: Product[];
-  }> {
-    return this.fetchData(`/gifts-section/${sectionType}/`, {
-      cacheKey: `gift-section:${sectionType}`,
-      cacheTTL: CACHE_CONFIG.GIFT_GUIDES.revalidate * 1000,
+  async getGiftGuideSection(t: string): Promise<unknown> {
+    return this.fetchData(`/gifts-section/${t}/`, {
+      cacheKey: `gift-section:${t}`,
+      cacheTTL: CACHE_TTL.GIFT_GUIDES,
     });
   },
-
   async getGiftCategoryProducts(
-    categorySlug: string,
-    params?: { [key: string]: string },
-  ): Promise<any> {
-    const cacheKey = `gift-category:${categorySlug}:${JSON.stringify(params || {})}`;
-    return this.fetchData(`/gift-category/${categorySlug}/products/`, {
-      cacheKey,
-      cacheTTL: CACHE_CONFIG.PRODUCTS.revalidate * 1000,
-      params,
+    s: string,
+    p?: Record<string, string>,
+  ): Promise<unknown> {
+    return this.fetchData(`/gift-category/${s}/products/`, {
+      cacheKey: `gift-category:${s}:${JSON.stringify(p || {})}`,
+      cacheTTL: CACHE_TTL.PRODUCTS,
+      params: p,
     });
   },
-
-  // ========== BEST OF VALENTINE ==========
-  async getBestOfValentineData(params?: {
-    price?: string;
-    on_sale?: boolean;
-    etsy_picks?: boolean;
-    sort?: string;
-  }): Promise<BestOfValentineData> {
-    const cacheKey = `valentine:${JSON.stringify(params || {})}`;
-    return this.fetchData<BestOfValentineData>("/best-of-valentine/", {
-      cacheKey,
-      cacheTTL: CACHE_CONFIG.GIFT_GUIDES.revalidate * 1000,
-      params: params as Record<string, string>,
+  async getBestOfValentineData(
+    p?: Record<string, string>,
+  ): Promise<BestOfValentineData> {
+    return this.fetchData("/best-of-valentine/", {
+      cacheKey: `valentine:${JSON.stringify(p || {})}`,
+      cacheTTL: CACHE_TTL.GIFT_GUIDES,
+      params: p,
     });
   },
-
-  // ========== HOME FAVOURITES ==========
   async getHomeFavouritesData(): Promise<HomeFavouritesData> {
-    return this.fetchData<HomeFavouritesData>("/home-favourites/", {
+    return this.fetchData("/home-favourites/", {
       cacheKey: "home-favourites",
-      cacheTTL: CACHE_CONFIG.GIFT_GUIDES.revalidate * 1000,
+      cacheTTL: CACHE_TTL.GIFT_GUIDES,
     });
   },
-
-  // ========== FASHION FINDS ==========
   async getFashionFindsData(): Promise<FashionFindsData> {
-    return this.fetchData<FashionFindsData>("/fashion-finds/", {
+    return this.fetchData("/fashion-finds/", {
       cacheKey: "fashion-finds",
-      cacheTTL: CACHE_CONFIG.GIFT_GUIDES.revalidate * 1000,
+      cacheTTL: CACHE_TTL.GIFT_GUIDES,
     });
   },
-  // ========== GIFT FINDER ==========
   async getGiftFinderData(): Promise<GiftFinderData> {
-    return this.fetchData<GiftFinderData>("/gift-finder/", {
+    return this.fetchData("/gift-finder/", {
       cacheKey: "gift-finder",
-      cacheTTL: CACHE_CONFIG.GIFT_GUIDES.revalidate * 1000,
+      cacheTTL: CACHE_TTL.GIFT_GUIDES,
+    });
+  },
+  async getGiftTeaserData(): Promise<GiftTeaserData> {
+    return this.fetchData("/gift-teaser/", {
+      cacheKey: "gift-teaser",
+      cacheTTL: CACHE_TTL.GIFT_GUIDES,
     });
   },
 
   async getCollectionsByInterest(interest: string): Promise<GiftCollection[]> {
-    interface CollectionsResponse {
-      results?: GiftCollection[];
-      data?: GiftCollection[];
-      collections?: GiftCollection[];
-    }
-
     try {
-      const response = await this.fetchData<
-        GiftCollection[] | CollectionsResponse
+      const r = await this.fetchData<
+        GiftCollection[] | { results?: GiftCollection[] }
       >(`/gift-finder/collections/?interest=${encodeURIComponent(interest)}`, {
         cacheKey: `collections:${interest}`,
-        cacheTTL: CACHE_CONFIG.GIFT_GUIDES.revalidate * 1000,
+        cacheTTL: CACHE_TTL.GIFT_GUIDES,
       });
-
-      // Handle different response formats
-      if (Array.isArray(response)) {
-        return response;
-      } else if (response && typeof response === "object") {
-        // Check for common API response patterns
-        if (Array.isArray((response as any).results)) {
-          return (response as any).results;
-        } else if (Array.isArray((response as any).data)) {
-          return (response as any).data;
-        } else if (Array.isArray((response as any).collections)) {
-          return (response as any).collections;
-        }
-      }
-
-      console.warn("Unexpected collections response format:", response);
-      return [];
-    } catch (error) {
-      console.error("Error fetching collections:", error);
+      return Array.isArray(r)
+        ? r
+        : Array.isArray((r as any).results)
+          ? (r as any).results
+          : [];
+    } catch {
       return [];
     }
   },
-
-  async getPopularGiftsByCategory(category: string): Promise<GiftProduct[]> {
-    interface PopularGiftsResponse {
-      results?: GiftProduct[];
-      products?: GiftProduct[];
-      data?: GiftProduct[];
-    }
-
+  async getPopularGiftsByCategory(cat: string): Promise<GiftProduct[]> {
     try {
-      const response = await this.fetchData<
-        GiftProduct[] | PopularGiftsResponse
-      >(
-        `/gift-finder/popular-gifts/?category=${encodeURIComponent(category)}`,
-        {
-          cacheKey: `popular-gifts:${category}`,
-          cacheTTL: CACHE_CONFIG.PRODUCTS.revalidate * 1000,
-        },
-      );
-
-      // Handle different response formats
-      if (Array.isArray(response)) {
-        return response;
-      } else if (response && typeof response === "object") {
-        // Check for common API response patterns
-        if (Array.isArray((response as any).results)) {
-          return (response as any).results;
-        } else if (Array.isArray((response as any).products)) {
-          return (response as any).products;
-        } else if (Array.isArray((response as any).data)) {
-          return (response as any).data;
-        }
-      }
-
-      console.warn("Unexpected popular gifts response format:", response);
-      return [];
-    } catch (error) {
-      console.error("Error fetching popular gifts:", error);
+      const r = await this.fetchData<
+        GiftProduct[] | { results?: GiftProduct[] }
+      >(`/gift-finder/popular-gifts/?category=${encodeURIComponent(cat)}`, {
+        cacheKey: `popular-gifts:${cat}`,
+        cacheTTL: CACHE_TTL.PRODUCTS,
+      });
+      return Array.isArray(r)
+        ? r
+        : Array.isArray((r as any).results)
+          ? (r as any).results
+          : [];
+    } catch {
       return [];
     }
   },
 
-  // ========== GIFT TEASER ==========
-  async getGiftTeaserData(): Promise<GiftTeaserData> {
-    return this.fetchData<GiftTeaserData>("/gift-teaser/", {
-      cacheKey: "gift-teaser",
-      cacheTTL: CACHE_CONFIG.GIFT_GUIDES.revalidate * 1000,
-    });
-  },
-
-  // ========== CART OPERATIONS (no cache) ==========
+  // ── Cart ───────────────────────────────────────────────────────────────────
   async addToCart(
     slug: string,
-    quantity: number = 1,
+    quantity = 1,
     sizeId?: number,
-  ): Promise<any> {
-    if (USE_MOCK_DATA) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
+  ): Promise<unknown> {
+    if (USE_MOCK_DATA)
       return { message: "Item added to cart", cart_item_id: Date.now() };
-    }
-
-    try {
-      const response = await this.fetchWithRetry(
-        `${API_BASE_URL}/add-to-cart/${slug}/`,
-        {
-          method: "POST",
-          body: JSON.stringify({ quantity, size_id: sizeId }),
+    const r = await timedFetch(
+      `${API_BASE_URL}/add-to-cart/${slug}/`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
         },
-      );
-      const data = await response.json();
-
-      // Invalidate cart cache
-      apiCache.clearPattern("cart:*");
-
-      return data;
-    } catch (error) {
-      console.error("Add to cart error:", error);
-      throw error;
-    }
+        body: JSON.stringify({ quantity, size_id: sizeId }),
+      },
+      TIMEOUT_MS.cart_write,
+    );
+    apiCache.clearPattern("cart:*");
+    return r.json();
   },
-
-  async getCart(): Promise<any> {
-    if (USE_MOCK_DATA) {
-      return {
-        items: [],
-        total: 0,
-        message: "Cart functionality not implemented yet",
-      };
-    }
-
-    return this.fetchData("/my-cart/", {
-      cacheKey: "cart",
-      cacheTTL: 60 * 1000, // 1 minute cache for cart
-    });
+  async getCart(): Promise<unknown> {
+    if (USE_MOCK_DATA) return { items: [], total: 0 };
+    return this.fetchData("/my-cart/", { cacheKey: "cart", cacheTTL: 60_000 });
   },
-
   async updateCartItem(
     itemId: number,
     action: "inc" | "dcr" | "rmv",
-  ): Promise<any> {
-    if (USE_MOCK_DATA) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return { message: "Cart updated" };
-    }
-
-    try {
-      const response = await this.fetchWithRetry(
-        `${API_BASE_URL}/manage-cart/${itemId}/`,
-        {
-          method: "POST",
-          body: JSON.stringify({ action }),
+  ): Promise<unknown> {
+    if (USE_MOCK_DATA) return { message: "Cart updated" };
+    const r = await timedFetch(
+      `${API_BASE_URL}/manage-cart/${itemId}/`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
         },
-      );
-      const data = await response.json();
-
-      // Invalidate cart cache
-      apiCache.clearPattern("cart:*");
-
-      return data;
-    } catch (error) {
-      console.error("Update cart error:", error);
-      throw error;
-    }
+        body: JSON.stringify({ action }),
+      },
+      TIMEOUT_MS.cart_write,
+    );
+    apiCache.clearPattern("cart:*");
+    return r.json();
   },
-
-  // ========== WISHLIST OPERATIONS ==========
-  async getWishlist(): Promise<any> {
-    if (USE_MOCK_DATA) {
-      return {
-        products: [],
-        message: "Wishlist functionality not implemented yet",
-      };
-    }
-
+  async getWishlist(): Promise<unknown> {
+    if (USE_MOCK_DATA) return { products: [] };
     return this.fetchData("/wishlist/", {
       cacheKey: "wishlist",
-      cacheTTL: 60 * 1000, // 1 minute cache
+      cacheTTL: 60_000,
     });
   },
-
-  async addToWishlist(productId: number): Promise<any> {
-    if (USE_MOCK_DATA) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return { message: "Product added to wishlist" };
-    }
-
-    try {
-      const response = await this.fetchWithRetry(`${API_BASE_URL}/wishlist/`, {
-        method: "POST",
-        body: JSON.stringify({ product_id: productId }),
-      });
-      const data = await response.json();
-
-      // Invalidate wishlist cache
-      apiCache.clearPattern("wishlist:*");
-
-      return data;
-    } catch (error) {
-      console.error("Add to wishlist error:", error);
-      throw error;
-    }
+  async addToWishlist(productId: number): Promise<unknown> {
+    const r = await this.fetchWithRetry(`${API_BASE_URL}/wishlist/`, {
+      method: "POST",
+      body: JSON.stringify({ product_id: productId }),
+    });
+    apiCache.clearPattern("wishlist:*");
+    return r.json();
   },
-
-  async removeFromWishlist(productId: number): Promise<any> {
-    if (USE_MOCK_DATA) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return { message: "Product removed from wishlist" };
-    }
-
-    try {
-      const response = await this.fetchWithRetry(`${API_BASE_URL}/wishlist/`, {
-        method: "DELETE",
-        body: JSON.stringify({ product_id: productId }),
-      });
-      const data = await response.json();
-
-      // Invalidate wishlist cache
-      apiCache.clearPattern("wishlist:*");
-
-      return data;
-    } catch (error) {
-      console.error("Remove from wishlist error:", error);
-      throw error;
-    }
+  async removeFromWishlist(productId: number): Promise<unknown> {
+    const r = await this.fetchWithRetry(`${API_BASE_URL}/wishlist/`, {
+      method: "DELETE",
+      body: JSON.stringify({ product_id: productId }),
+    });
+    apiCache.clearPattern("wishlist:*");
+    return r.json();
   },
-
-  // ========== GIFT TEASER OPERATIONS ==========
-  async markAsGift(cartProductId: number): Promise<MarkAsGiftResponse> {
-    if (USE_MOCK_DATA) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return {
-        message: "Item marked as gift",
-        cart_product_id: cartProductId,
-      };
-    }
-
+  async markAsGift(id: number): Promise<MarkAsGiftResponse> {
+    if (USE_MOCK_DATA)
+      return { message: "Item marked as gift", cart_product_id: id };
     try {
-      const response = await this.fetchWithRetry(
+      const r = await this.fetchWithRetry(
         `${API_BASE_URL}/gift-teaser/mark-as-gift/`,
-        {
-          method: "POST",
-          body: JSON.stringify({ cart_product_id: cartProductId }),
-        },
+        { method: "POST", body: JSON.stringify({ cart_product_id: id }) },
       );
-      return response.json();
-    } catch (error: any) {
-      return {
-        message: "",
-        error: error.message,
-        cart_product_id: cartProductId,
-      };
+      return r.json();
+    } catch (e: any) {
+      return { message: "", error: e.message, cart_product_id: id };
     }
   },
-
-  async unmarkAsGift(cartProductId: number): Promise<MarkAsGiftResponse> {
-    if (USE_MOCK_DATA) {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      return {
-        message: "Item unmarked as gift",
-        cart_product_id: cartProductId,
-      };
-    }
-
+  async unmarkAsGift(id: number): Promise<MarkAsGiftResponse> {
+    if (USE_MOCK_DATA)
+      return { message: "Item unmarked as gift", cart_product_id: id };
     try {
-      const response = await this.fetchWithRetry(
+      const r = await this.fetchWithRetry(
         `${API_BASE_URL}/gift-teaser/mark-as-gift/`,
-        {
-          method: "DELETE",
-          body: JSON.stringify({ cart_product_id: cartProductId }),
-        },
+        { method: "DELETE", body: JSON.stringify({ cart_product_id: id }) },
       );
-      return response.json();
-    } catch (error: any) {
-      return {
-        message: "",
-        error: error.message,
-        cart_product_id: cartProductId,
-      };
+      return r.json();
+    } catch (e: any) {
+      return { message: "", error: e.message, cart_product_id: id };
     }
   },
 
-  // ========== MOCK DATA METHODS (keep your existing ones) ==========
+  // ── Minimal mock stubs ─────────────────────────────────────────────────────
   async getMockHomepageData(): Promise<HomepageData> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    // ... (keep your existing mock data implementation)
     return {
       hero_banner: {
-        message: "Make this your best Valentine's Day yet",
+        message: "Find something you love",
         image: null,
         search_placeholder: "Search for anything",
       },
-      featured_interests: [
-        {
-          id: 1,
-          title: "Linen Spotlight",
-          slug: "linen-spotlight",
-          image:
-            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=500&fit=crop",
-          products_count: 156,
-          icon: undefined,
-        },
-        // ... rest of mock data
-      ],
+      featured_interests: [],
       discover_section: [],
       birthday_gifts: { categories: [], products: [] },
       gift_categories: [],
@@ -1090,14 +896,10 @@ export const apiService = {
       new_arrival_products: [],
     };
   },
-
   async getMockGiftsPageData(): Promise<GiftsPageData> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    // ... (keep your existing mock implementation)
     return {
-      page_title: "Etsy's Best Gift Guides",
-      page_description:
-        "Discover curated picks for every person and moment, straight from extraordinary small shops.",
+      page_title: "",
+      page_description: "",
       best_gift_guides: [],
       valentines_gifts: [],
       bestselling_gifts: [],
@@ -1108,499 +910,42 @@ export const apiService = {
       top_rated_products: [],
     };
   },
-
   async getMockBestOfValentineData(): Promise<BestOfValentineData> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    // ... (keep your existing mock implementation)
     return {
       section: {
         id: 1,
-        title: "Best of Valentine's Day",
-        description: "Picks you'll love",
+        title: "",
+        description: "",
         section_type: "best_of_valentine",
       },
       categories: [],
       products: [],
       related_searches: [],
-      filters: {
-        price_options: [],
-        sort_options: [],
-        shipping_options: [],
-      },
-      current_filters: {
-        price: "any",
-        on_sale: false,
-        etsy_picks: false,
-      },
+      filters: { price_options: [], sort_options: [], shipping_options: [] },
+      current_filters: { price: "any", on_sale: false, etsy_picks: false },
     };
   },
-
-  // Update the getMockHomeFavouritesData method
   async getMockHomeFavouritesData(): Promise<HomeFavouritesData> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
     return {
       section: {
         id: 1,
-        title: "Etsy's Guide to Home",
-        description:
-          "Discover original wall art, comfy bedding, unique lighting, and more from small shops.",
+        title: "",
+        description: "",
         section_type: "home_favourites",
       },
-      hero_categories: [
-        {
-          title: "Home Decor",
-          image:
-            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-          slug: "home-decor",
-        },
-        {
-          title: "Kitchen & Dining",
-          image:
-            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
-          slug: "kitchen-dining",
-        },
-        {
-          title: "Furniture",
-          image:
-            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
-          slug: "furniture",
-        },
-        {
-          title: "Vintage Rugs",
-          image:
-            "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop",
-          slug: "vintage-rugs",
-        },
-        {
-          title: "Lighting",
-          image:
-            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
-          slug: "lighting",
-        },
-        {
-          title: "Bedding",
-          image:
-            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
-          slug: "bedding",
-        },
-      ],
-      home_categories: [
-        {
-          id: 1,
-          title: "Artisanal Dinnerware",
-          slug: "artisanal-dinnerware",
-          image:
-            "https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=400&h=400&fit=crop",
-          products_count: 156,
-          category_type: "home_favourites",
-        },
-        {
-          id: 2,
-          title: "Outdoor Furniture & Decor",
-          slug: "outdoor-furniture-decor",
-          image:
-            "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=400&fit=crop",
-          products_count: 89,
-          category_type: "home_favourites",
-        },
-        {
-          id: 3,
-          title: "Garden Decor & Supplies",
-          slug: "garden-decor-supplies",
-          image:
-            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
-          products_count: 234,
-          category_type: "home_favourites",
-        },
-        {
-          id: 4,
-          title: "Personalised Home Decor",
-          slug: "personalised-home-decor",
-          image:
-            "https://images.unsplash.com/photo-1516724562728-afc824a36e84?w=400&h=400&fit=crop",
-          products_count: 112,
-          category_type: "home_favourites",
-        },
-        {
-          id: 5,
-          title: "Candles & Home Fragrance",
-          slug: "candles-home-fragrance",
-          image:
-            "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop",
-          products_count: 245,
-          category_type: "home_favourites",
-        },
-        {
-          id: 6,
-          title: "Vintage Home Decor",
-          slug: "vintage-home-decor",
-          image:
-            "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?w=400&h=400&fit=crop",
-          products_count: 189,
-          category_type: "home_favourites",
-        },
-      ],
-      small_shops: [
-        {
-          name: "OliveLaneInteriors",
-          rating: 5,
-          reviewCount: "100",
-          images: [
-            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
-          ],
-        },
-        {
-          name: "BrooxFurniture",
-          rating: 5,
-          reviewCount: "116",
-          images: [
-            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
-          ],
-        },
-        {
-          name: "ForestlandLinen",
-          rating: 5,
-          reviewCount: "4,977",
-          images: [
-            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
-          ],
-        },
-        {
-          name: "MDTMobilier",
-          rating: 3,
-          reviewCount: "70",
-          images: [
-            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-            "https://images.unsplash.com/photo-1548625320-cf6858a7c538?w=400&h=400&fit=crop",
-          ],
-        },
-      ],
-      spring_linens_products: [
-        {
-          id: 1,
-          title: "Linen Shower Curtain",
-          slug: "linen-shower-curtain",
-          short_description: "Beautiful linen shower curtain for your bathroom",
-          price: 39.0,
-          discount_price: undefined, // Changed from null
-          discount_percentage: 0,
-          final_price: 39.0,
-          main: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=500&fit=crop",
-          rating: 4.8,
-          review_count: 6900,
-          is_featured: true,
-          is_bestseller: true,
-          is_deal: false,
-          is_new_arrival: false,
-          condition: "new",
-          color: "White",
-          shop_name: "LinenByMN",
-          etsy_pick: true,
-          freeDelivery: false,
-          has_video: false,
-        },
-      ],
-      reorganizing_products: [
-        {
-          id: 101,
-          title: "Spice Labels | Custom Handmade",
-          slug: "spice-labels",
-          short_description: "Handmade custom spice labels for your kitchen",
-          price: 4.5,
-          discount_price: undefined, // Changed from null
-          discount_percentage: 0,
-          final_price: 4.5,
-          main: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=500&fit=crop",
-          rating: 5.0,
-          review_count: 100,
-          is_featured: true,
-          is_bestseller: false,
-          is_deal: false,
-          is_new_arrival: true,
-          condition: "handmade",
-          color: "Various",
-          shop_name: "OliveLaneInteriors",
-          etsy_pick: true,
-          freeDelivery: false,
-          has_video: false,
-        },
-      ],
-      discover_categories: [
-        {
-          title: "Special Starts on Etsy",
-          image:
-            "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=400&fit=crop",
-          slug: "special-starts",
-        },
-        {
-          title: "Global Seller Spotlight",
-          image:
-            "https://images.unsplash.com/photo-1567016376408-0226e1d3d0c6?w=400&h=400&fit=crop",
-          slug: "global-seller",
-        },
-        {
-          title: "Vintage Home Decor",
-          image:
-            "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&h=400&fit=crop",
-          slug: "vintage-home-decor",
-        },
-        {
-          title: "Explore Unique Wall Art",
-          image:
-            "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop",
-          slug: "unique-wall-art",
-        },
-      ],
-      filters: {
-        price_options: [
-          { value: "any", label: "Any price" },
-          { value: "under25", label: "Under USD 25" },
-          { value: "25to50", label: "USD 25 to USD 50" },
-          { value: "50to100", label: "USD 50 to USD 100" },
-          { value: "over100", label: "Over USD 100" },
-        ],
-      },
+      hero_categories: [],
+      home_categories: [],
+      small_shops: [],
+      spring_linens_products: [],
+      reorganizing_products: [],
+      discover_categories: [],
+      filters: { price_options: [] },
     };
   },
-
-  getMockGiftFinderData(): GiftFinderData {
-    return {
-      hero_occasions: [
-        {
-          id: 1,
-          label: "Valentine's Day",
-          date: "14 Feb",
-          icon: "Heart",
-          slug: "valentines-day",
-          order: 1,
-        },
-        {
-          id: 2,
-          label: "Birthday",
-          icon: "Cake",
-          slug: "birthday",
-          order: 2,
-        },
-        {
-          id: 3,
-          label: "Anniversary",
-          icon: "CircleDot",
-          slug: "anniversary",
-          order: 3,
-        },
-      ],
-      browse_interests: [
-        { id: 1, name: "Jewellery", slug: "jewellery", order: 1 },
-        { id: 2, name: "Home Decor", slug: "home-decor", order: 2 },
-        { id: 3, name: "Art", slug: "art", order: 3 },
-      ],
-      featured_collections: [
-        {
-          id: 1,
-          persona: {
-            id: 1,
-            name: "The Jewellery Lover",
-            persona_type: "collection",
-            bg_color: "bg-purple-50",
-            accent_color: "bg-purple-600",
-            slug: "jewellery-lover",
-            order: 1,
-          },
-          title: "Resin Statement Necklaces",
-          slug: "resin-statement-necklaces",
-          interest_tag: "Jewellery",
-          products: [
-            {
-              id: 101,
-              title: "Resin Flower Necklace",
-              slug: "resin-flower-necklace",
-              short_description: "Handmade resin flower necklace",
-              price: 45.0,
-              discount_price: undefined, // Changed from null
-              discount_percentage: 0,
-              final_price: 45.0,
-              main: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=400&fit=crop",
-              rating: 4.8,
-              review_count: 120,
-              is_featured: true,
-              is_bestseller: false,
-              is_deal: false,
-              is_new_arrival: true,
-              condition: "handmade",
-              color: "Mixed",
-              shop_name: "ResinArtistry",
-              etsy_pick: true,
-              freeDelivery: false,
-              has_video: false,
-            },
-          ],
-        },
-      ],
-      recipients: [
-        {
-          id: 1,
-          label: "For your Partner",
-          icon: "Heart",
-          slug: "for-your-partner",
-          order: 1,
-          items: [
-            {
-              id: 1,
-              title: "Gemstone Rings",
-              slug: "gemstone-rings",
-              order: 1,
-            },
-          ],
-        },
-      ],
-      gift_personas: [
-        {
-          id: 1,
-          name: "Gadget Obsessed",
-          persona_type: "interest",
-          bg_color: "bg-sky-200",
-          accent_color: "bg-orange-500",
-          slug: "gadget-obsessed",
-          order: 1,
-        },
-      ],
-      guilty_pleasures: [
-        {
-          id: 11,
-          name: "Chocoholic",
-          persona_type: "guilty_pleasure",
-          bg_color: "bg-yellow-400",
-          slug: "chocoholic",
-          order: 1,
-        },
-      ],
-      zodiac_signs: [
-        {
-          id: 16,
-          name: "Aquarius",
-          persona_type: "zodiac_sign",
-          bg_color: "bg-green-500",
-          slug: "aquarius",
-          order: 1,
-        },
-      ],
-      gift_grid_items: [
-        {
-          id: 1,
-          title: "Date Night Ideas",
-          image:
-            "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=400&fit=crop",
-          size: "small",
-          slug: "date-night-ideas",
-          order: 1,
-        },
-      ],
-      popular_gift_categories: [
-        { id: 1, name: "Jewellery", slug: "jewellery", order: 1 },
-        { id: 2, name: "Clothing", slug: "clothing", order: 2 },
-      ],
-    };
-  },
-
-  getMockGiftTeaserData(): GiftTeaserData {
-    return {
-      teaser_banner: {
-        id: 1,
-        title: "Make any gift extra-special with a gift teaser – it's *FREE!",
-        badge_text: "✨ New",
-        description: "",
-        features: [
-          {
-            id: 1,
-            icon: "ShoppingCart",
-            text: "Mark as a gift to send a gift teaser! *It's free with purchase",
-            order: 1,
-          },
-          {
-            id: 2,
-            icon: "Gift",
-            text: "Send a special note, tracking info, and even a sneak peek",
-            order: 2,
-          },
-          {
-            id: 3,
-            icon: "Send",
-            text: "Share it instantly... even on the way to the party!",
-            order: 3,
-          },
-        ],
-        is_active: true,
-        order: 1,
-      },
-      gift_card_banner: {
-        id: 1,
-        title: "Shop Etsy gift cards",
-        description:
-          "Get them something one-of-a-kind in minutes, no guesswork needed.",
-        button_text: "Pick a design",
-        button_url: "/gift-cards",
-        gradient_from: "from-yellow-300",
-        gradient_via: "via-orange-400",
-        gradient_to: "to-green-500",
-        is_active: true,
-        order: 1,
-      },
-      about_section: {
-        id: 1,
-        title:
-          "If you need gift ideas for anybody – and we mean ANYBODY – in your life, you've come to the right place.",
-        description:
-          "By answering a few simple questions, this fun gift finder will suggest the perfect presents based on the occasion, the person's interests, and more. Etsy takes the stress out of finding special gifts. From anniversary gifts to birthday gifts, and even gifts for the people who have everything, use Etsy to take the guesswork out of giving.",
-        icon: "Gift",
-        button_text_more: "More",
-        button_text_less: "Less",
-        is_active: true,
-      },
-      featured_product: {
-        id: 1,
-        title: "Personalised Leather Coin Purse",
-        slug: "personalised-leather-coin-purse",
-        short_description: "Handmade personalised leather coin purse",
-        price: 29.99,
-        discount_price: undefined, // Changed from null
-        discount_percentage: 0,
-        final_price: 29.99,
-        main: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=400&fit=crop",
-        rating: 4.8,
-        review_count: 1250,
-        is_featured: true,
-        is_bestseller: true,
-        is_deal: false,
-        is_new_arrival: false,
-        condition: "handmade",
-        color: "Brown",
-        shop_name: "LeatherCrafts",
-        etsy_pick: true,
-        freeDelivery: false,
-        has_video: false,
-      },
-    };
-  },
-
   async getMockFashionFindsData(): Promise<FashionFindsData> {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    // ... (keep your existing mock implementation)
     return {
-      hero_title: "Etsy's Guide to Fashion",
-      hero_description:
-        "From custom clothing to timeless jewellery, everything you need to upgrade your wardrobe.",
+      hero_title: "",
+      hero_description: "",
       hero_categories: [],
       shops_we_love: [],
       personalised_clothes_products: [],
@@ -1612,222 +957,30 @@ export const apiService = {
       filters: { price_options: [] },
     };
   },
-
-  // getMockGiftFinderData(): GiftFinderData {
-  //   return {
-  //     hero_occasions: [
-  //       {
-  //         id: 1,
-  //         label: "Valentine's Day",
-  //         date: "14 Feb",
-  //         icon: "Heart",
-  //         slug: "valentines-day",
-  //         order: 1,
-  //       },
-  //       {
-  //         id: 2,
-  //         label: "Birthday",
-  //         icon: "Cake",
-  //         slug: "birthday",
-  //         order: 2,
-  //       },
-  //       {
-  //         id: 3,
-  //         label: "Anniversary",
-  //         icon: "CircleDot",
-  //         slug: "anniversary",
-  //         order: 3,
-  //       },
-  //     ],
-  //     browse_interests: [
-  //       { id: 1, name: "Jewellery", slug: "jewellery", order: 1 },
-  //       { id: 2, name: "Home Decor", slug: "home-decor", order: 2 },
-  //       { id: 3, name: "Art", slug: "art", order: 3 },
-  //     ],
-  //     featured_collections: [
-  //       {
-  //         id: 1,
-  //         persona: {
-  //           id: 1,
-  //           name: "The Jewellery Lover",
-  //           persona_type: "collection",
-  //           bg_color: "bg-purple-50",
-  //           accent_color: "bg-purple-600",
-  //           slug: "jewellery-lover",
-  //           order: 1,
-  //         },
-  //         title: "Resin Statement Necklaces",
-  //         slug: "resin-statement-necklaces",
-  //         interest_tag: "Jewellery",
-  //         products: [
-  //           {
-  //             id: 101,
-  //             title: "Resin Flower Necklace",
-  //             slug: "resin-flower-necklace",
-  //             price: 45.0,
-  //             final_price: 45.0,
-  //             main: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&h=400&fit=crop",
-  //             rating: 4.8,
-  //             review_count: 120,
-  //             is_featured: true,
-  //             is_bestseller: false,
-  //             is_deal: false,
-  //             is_new_arrival: true,
-  //             condition: "handmade",
-  //             discount_percentage: 0,
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //     recipients: [
-  //       {
-  //         id: 1,
-  //         label: "For your Partner",
-  //         icon: "Heart",
-  //         slug: "for-your-partner",
-  //         order: 1,
-  //         items: [
-  //           {
-  //             id: 1,
-  //             title: "Gemstone Rings",
-  //             slug: "gemstone-rings",
-  //             order: 1,
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //     gift_personas: [
-  //       {
-  //         id: 1,
-  //         name: "Gadget Obsessed",
-  //         persona_type: "interest",
-  //         bg_color: "bg-sky-200",
-  //         accent_color: "bg-orange-500",
-  //         slug: "gadget-obsessed",
-  //         order: 1,
-  //       },
-  //     ],
-  //     guilty_pleasures: [
-  //       {
-  //         id: 11,
-  //         name: "Chocoholic",
-  //         persona_type: "guilty_pleasure",
-  //         bg_color: "bg-yellow-400",
-  //         slug: "chocoholic",
-  //         order: 1,
-  //       },
-  //     ],
-  //     zodiac_signs: [
-  //       {
-  //         id: 16,
-  //         name: "Aquarius",
-  //         persona_type: "zodiac_sign",
-  //         bg_color: "bg-green-500",
-  //         slug: "aquarius",
-  //         order: 1,
-  //       },
-  //     ],
-  //     gift_grid_items: [
-  //       {
-  //         id: 1,
-  //         title: "Date Night Ideas",
-  //         image:
-  //           "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=400&fit=crop",
-  //         size: "small",
-  //         slug: "date-night-ideas",
-  //         order: 1,
-  //       },
-  //     ],
-  //     popular_gift_categories: [
-  //       { id: 1, name: "Jewellery", slug: "jewellery", order: 1 },
-  //       { id: 2, name: "Clothing", slug: "clothing", order: 2 },
-  //     ],
-  //   };
-  // },
-
-  // getMockGiftTeaserData(): GiftTeaserData {
-  //   return {
-  //     teaser_banner: {
-  //       id: 1,
-  //       title: "Make any gift extra-special with a gift teaser – it's *FREE!",
-  //       badge_text: "✨ New",
-  //       description: "",
-  //       features: [
-  //         {
-  //           id: 1,
-  //           icon: "ShoppingCart",
-  //           text: "Mark as a gift to send a gift teaser! *It's free with purchase",
-  //           order: 1,
-  //         },
-  //         {
-  //           id: 2,
-  //           icon: "Gift",
-  //           text: "Send a special note, tracking info, and even a sneak peek",
-  //           order: 2,
-  //         },
-  //         {
-  //           id: 3,
-  //           icon: "Send",
-  //           text: "Share it instantly... even on the way to the party!",
-  //           order: 3,
-  //         },
-  //       ],
-  //       is_active: true,
-  //       order: 1,
-  //     },
-  //     gift_card_banner: {
-  //       id: 1,
-  //       title: "Shop Etsy gift cards",
-  //       description:
-  //         "Get them something one-of-a-kind in minutes, no guesswork needed.",
-  //       button_text: "Pick a design",
-  //       button_url: "/gift-cards",
-  //       gradient_from: "from-yellow-300",
-  //       gradient_via: "via-orange-400",
-  //       gradient_to: "to-green-500",
-  //       is_active: true,
-  //       order: 1,
-  //     },
-  //     about_section: {
-  //       id: 1,
-  //       title:
-  //         "If you need gift ideas for anybody – and we mean ANYBODY – in your life, you've come to the right place.",
-  //       description:
-  //         "By answering a few simple questions, this fun gift finder will suggest the perfect presents based on the occasion, the person's interests, and more. Etsy takes the stress out of finding special gifts. From anniversary gifts to birthday gifts, and even gifts for the people who have everything, use Etsy to take the guesswork out of giving.",
-  //       icon: "Gift",
-  //       button_text_more: "More",
-  //       button_text_less: "Less",
-  //       is_active: true,
-  //     },
-  //     featured_product: {
-  //       id: 1,
-  //       title: "Personalised Leather Coin Purse",
-  //       slug: "personalised-leather-coin-purse",
-  //       short_description: "Handmade personalised leather coin purse",
-  //       price: 29.99,
-  //       discount_price: null,
-  //       discount_percentage: 0,
-  //       final_price: 29.99,
-  //       main: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=400&h=400&fit=crop",
-  //       rating: 4.8,
-  //       review_count: 1250,
-  //       is_featured: true,
-  //       is_bestseller: true,
-  //       is_deal: false,
-  //       is_new_arrival: false,
-  //       condition: "handmade",
-  //       color: "Brown",
-  //       shop_name: "LeatherCrafts",
-  //       etsy_pick: true,
-  //       freeDelivery: false,
-  //       has_video: false,
-  //     },
-  //   };
-  // },
+  getMockGiftFinderData(): GiftFinderData {
+    return {
+      hero_occasions: [],
+      browse_interests: [],
+      featured_collections: [],
+      recipients: [],
+      gift_personas: [],
+      guilty_pleasures: [],
+      zodiac_signs: [],
+      gift_grid_items: [],
+      popular_gift_categories: [],
+    };
+  },
+  getMockGiftTeaserData(): GiftTeaserData {
+    return {
+      teaser_banner: null,
+      gift_card_banner: null,
+      about_section: null,
+      featured_product: null,
+    };
+  },
 };
 
-// Export cache utilities for manual invalidation if needed
 export const cacheUtils = {
   clearAll: () => apiCache.clear(),
-  clearPattern: (pattern: string) => apiCache.clearPattern(pattern),
+  clearPattern: (p: string) => apiCache.clearPattern(p),
 };
