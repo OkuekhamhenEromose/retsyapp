@@ -8,8 +8,9 @@ import {
   Plus, MoreHorizontal, Gift, ChevronRight, Info, Tag, Check,
 } from 'lucide-react';
 import { useCart, CartItem, CartGroup, CartSummary } from '@/context/CartContext';
+import CheckoutModal from '@/components/CheckoutModal';
 
-// ─── Types (related products only — cart types come from context) ─────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface RelatedProduct {
   id:                 number;
   title:              string;
@@ -130,7 +131,6 @@ const CartItemCard: React.FC<{
   return (
     <div className="py-5">
       <div className="flex gap-4">
-        {/* Image */}
         <Link href={`/product/${item.product_slug}`} className="shrink-0">
           <div className="w-[130px] h-[130px] sm:w-[140px] sm:h-[140px] rounded-lg overflow-hidden bg-gray-100 relative">
             {item.product_image
@@ -139,13 +139,11 @@ const CartItemCard: React.FC<{
           </div>
         </Link>
 
-        {/* Details */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <Link href={`/product/${item.product_slug}`} className="text-[14px] text-gray-800 hover:underline underline-offset-2 leading-snug line-clamp-2">
               {item.product_name}
             </Link>
-            {/* ⋯ menu */}
             <div className="relative shrink-0">
               <button onClick={() => setShowMenu(v => !v)} className="p-1 hover:bg-gray-100 rounded-full" aria-label="More options">
                 <MoreHorizontal size={18} className="text-gray-500" />
@@ -168,7 +166,6 @@ const CartItemCard: React.FC<{
             </div>
           </div>
 
-          {/* Variant pills */}
           {(item.variant_color || item.variant_design) && (
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {item.variant_color && (
@@ -179,7 +176,6 @@ const CartItemCard: React.FC<{
             </div>
           )}
 
-          {/* Personalization pills */}
           {item.personalizations?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {item.personalizations.map((p, i) => (
@@ -190,14 +186,12 @@ const CartItemCard: React.FC<{
             </div>
           )}
 
-          {/* Sale countdown */}
           {timer && (item.sale_ends_in!.hours + item.sale_ends_in!.minutes) > 0 && (
             <p className="text-[12px] text-[#F1641E] font-medium mt-1.5">
               Sale ends in {pad(timer.hours)}:{pad(timer.minutes)}:{pad(timer.seconds)}
             </p>
           )}
 
-          {/* Price */}
           <div className="flex items-baseline gap-2 mt-2">
             <span className="text-[16px] font-bold text-[#F1641E]">USD {item.price_per_unit.toFixed(2)}</span>
             {item.original_price && item.original_price > item.price_per_unit && (
@@ -210,7 +204,6 @@ const CartItemCard: React.FC<{
             )}
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-3 mt-3 flex-wrap">
             <QuantitySelector value={item.quantity} onChange={q => onQuantityChange(item.client_id, q)} />
             <button className="text-[13px] text-gray-600 hover:text-gray-900 hover:underline underline-offset-2">Edit</button>
@@ -230,13 +223,12 @@ const SellerGroupCard: React.FC<{
   onRemove:         (clientId: string) => void;
   onCheckout:       () => void;
 }> = ({ group, onQuantityChange, onRemove, onCheckout }) => {
-  const [isGift, setIsGift]       = useState(false);
-  const [giftMsg, setGiftMsg]     = useState('');
-  const [showMsg, setShowMsg]     = useState(false);
+  const [isGift, setIsGift]   = useState(false);
+  const [giftMsg, setGiftMsg] = useState('');
+  const [showMsg, setShowMsg] = useState(false);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden mb-4 shadow-sm">
-      {/* Seller header */}
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
@@ -263,14 +255,12 @@ const SellerGroupCard: React.FC<{
         </button>
       </div>
 
-      {/* Items */}
       <div className="px-5 divide-y divide-gray-100">
         {group.items.map(item => (
           <CartItemCard key={item.client_id} item={item} onQuantityChange={onQuantityChange} onRemove={onRemove} />
         ))}
       </div>
 
-      {/* Postage */}
       <div className="px-5 pb-3 pt-1">
         <p className="text-[13px] text-gray-600">
           <span className="font-medium">Postage:</span>{' '}
@@ -283,7 +273,6 @@ const SellerGroupCard: React.FC<{
         </p>
       </div>
 
-      {/* Gift toggle */}
       <div className="px-5 pb-4">
         <label className="flex items-center gap-2.5 cursor-pointer group">
           <div
@@ -311,10 +300,11 @@ const SellerGroupCard: React.FC<{
         )}
       </div>
 
-      {/* Shop checkout */}
       <div className="px-5 pb-4">
-        <button onClick={onCheckout}
-          className="w-full py-2.5 border-2 border-gray-900 rounded-full text-[13px] font-semibold text-gray-900 hover:bg-gray-900 hover:text-white transition-all duration-200">
+        <button
+          onClick={onCheckout}
+          className="w-full py-2.5 border-2 border-gray-900 rounded-full text-[13px] font-semibold text-gray-900 hover:bg-gray-900 hover:text-white transition-all duration-200"
+        >
           Check out for this shop only
         </button>
       </div>
@@ -365,7 +355,7 @@ const RelatedProductCard: React.FC<{
   </div>
 );
 
-// ─── Order Summary ────────────────────────────────────────────────────────────
+// ─── Order Summary Panel ──────────────────────────────────────────────────────
 const OrderSummaryPanel: React.FC<{
   cart:       CartSummary;
   onCheckout: () => void;
@@ -450,9 +440,10 @@ const OrderSummaryPanel: React.FC<{
         )}
       </div>
 
+      {/* ── Primary checkout button — opens modal ── */}
       <button
         onClick={onCheckout}
-        className="w-full bg-[#F1641E] hover:bg-[#d95518] text-white font-bold py-3.5 rounded-full text-[15px] transition-colors shadow-sm hover:shadow-md mb-3"
+        className="w-full bg-[#F1641E] hover:bg-[#d95518] text-white font-bold py-3.5 rounded-full text-[15px] transition-all shadow-sm hover:shadow-md hover:shadow-orange-200 active:scale-[0.98] mb-3"
       >
         Proceed to checkout
       </button>
@@ -471,12 +462,15 @@ const OrderSummaryPanel: React.FC<{
 export default function BasketPage() {
   const { cart, removeItem, updateQuantity, addToCart, refreshCart } = useCart();
 
-  const [relatedProducts, setRelatedProducts]   = useState<RelatedProduct[]>([]);
-  const [moreRelated,     setMoreRelated]        = useState<RelatedProduct[]>([]);
-  const [addingSlug,      setAddingSlug]         = useState<string | null>(null);
-  const [pageLoading,     setPageLoading]        = useState(true);
-  const [showToast,       setShowToast]          = useState(false);
-  const [toastItem,       setToastItem]          = useState<CartItem | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
+  const [moreRelated,     setMoreRelated]     = useState<RelatedProduct[]>([]);
+  const [addingSlug,      setAddingSlug]      = useState<string | null>(null);
+  const [pageLoading,     setPageLoading]     = useState(true);
+  const [showToast,       setShowToast]       = useState(false);
+  const [toastItem,       setToastItem]       = useState<CartItem | null>(null);
+
+  // ── Checkout modal state ──────────────────────────────────────────────────
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 
@@ -485,7 +479,7 @@ export default function BasketPage() {
     refreshCart().finally(() => setPageLoading(false));
   }, [refreshCart]);
 
-  // Show sale toast when a discounted item exists
+  // Show sale toast for discounted items
   useEffect(() => {
     if (!cart.total_items) return;
     for (const g of cart.groups) {
@@ -506,22 +500,21 @@ export default function BasketPage() {
         const res = await fetch(`${API}/products/?featured=true&in_stock=true&page_size=8`, { credentials: 'include' });
         if (!res.ok) throw new Error();
         const data = await res.json();
-        const all = (data.results ?? data) as any[];
+        const all  = (data.results ?? data) as any[];
         const toCard = (p: any): RelatedProduct => ({
           id: p.id, title: p.title, slug: p.slug,
-          price:              parseFloat(p.price),
-          discount_price:     p.discount_price ? parseFloat(p.discount_price) : null,
-          final_price:        parseFloat(p.final_price ?? p.price),
+          price:               parseFloat(p.price),
+          discount_price:      p.discount_price ? parseFloat(p.discount_price) : null,
+          final_price:         parseFloat(p.final_price ?? p.price),
           discount_percentage: p.discount_percentage ?? 0,
-          image:              p.main ?? p.image ?? '',
-          rating:             parseFloat(p.rating),
-          review_count:       p.review_count,
-          has_free_delivery:  p.has_free_delivery,
+          image:               p.main ?? p.image ?? '',
+          rating:              parseFloat(p.rating),
+          review_count:        p.review_count,
+          has_free_delivery:   p.has_free_delivery,
         });
         setRelatedProducts(all.slice(0, 4).map(toCard));
         setMoreRelated(all.slice(4, 9).map(toCard));
       } catch {
-        // Fallback mock related products
         const mock: RelatedProduct[] = [
           { id: 10, title: 'Custom Embroidered P...', slug: 'custom-p-1', price: 58.78, discount_price: 29.39, final_price: 29.39, discount_percentage: 50, image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&h=400&fit=crop', rating: 4.8, review_count: 234, has_free_delivery: true },
           { id: 11, title: 'Embroidered Shih Tzu ...', slug: 'shih-tzu-1', price: 26.99, discount_price: null, final_price: 26.99, discount_percentage: 0, image: 'https://images.unsplash.com/photo-1534215754734-18e55d13e346?w=400&h=400&fit=crop', rating: 4.9, review_count: 412, has_free_delivery: true },
@@ -540,7 +533,7 @@ export default function BasketPage() {
     })();
   }, [API]);
 
-  // Add a related product to cart
+  // Add related product to cart
   const handleAddRelated = async (slug: string) => {
     if (addingSlug) return;
     setAddingSlug(slug);
@@ -549,29 +542,25 @@ export default function BasketPage() {
       if (res.ok) {
         const p = await res.json();
         await addToCart({
-          product_id:    p.id,
-          product_name:  p.title,
-          product_slug:  p.slug,
-          product_image: p.main ?? '',
-          price_per_unit: parseFloat(p.final_price ?? p.price),
-          original_price: p.discount_price ? parseFloat(p.price) : null,
+          product_id:          p.id,
+          product_name:        p.title,
+          product_slug:        p.slug,
+          product_image:       p.main ?? '',
+          price_per_unit:      parseFloat(p.final_price ?? p.price),
+          original_price:      p.discount_price ? parseFloat(p.price) : null,
           discount_percentage: p.discount_percentage ?? 0,
-          seller_name:   p.seller_name ?? 'Shop',
-          quantity:      1,
+          seller_name:         p.seller_name ?? 'Shop',
+          quantity:            1,
         });
       } else {
-        // Fallback: just add with what we know from the card
         const card = [...relatedProducts, ...moreRelated].find(rp => rp.slug === slug);
         if (card) {
           await addToCart({
-            product_id:    card.id,
-            product_name:  card.title,
-            product_slug:  card.slug,
-            product_image: card.image,
+            product_id: card.id, product_name: card.title,
+            product_slug: card.slug, product_image: card.image,
             price_per_unit: card.final_price,
             original_price: card.discount_price ? card.price : null,
-            discount_percentage: card.discount_percentage,
-            quantity: 1,
+            discount_percentage: card.discount_percentage, quantity: 1,
           });
         }
       }
@@ -591,9 +580,13 @@ export default function BasketPage() {
     }
   };
 
-  const handleCheckout = () => { window.location.href = '/checkout'; };
+  // ── Open checkout modal ───────────────────────────────────────────────────
+  const handleCheckout = () => {
+    if (cart.total_items === 0) return;
+    setShowCheckoutModal(true);
+  };
 
-  // ── Loading skeleton ─────────────────────────────────────────────────────────
+  // ── Loading skeleton ──────────────────────────────────────────────────────
   if (pageLoading) {
     return (
       <div className="max-w-[1400px] mx-auto px-4 py-12">
@@ -623,7 +616,7 @@ export default function BasketPage() {
 
   return (
     <>
-      {/* Sale Toast */}
+      {/* ── Sale Toast ───────────────────────────────────────────────────── */}
       {showToast && toastItem && (
         <SaleToast
           item={toastItem}
@@ -632,9 +625,19 @@ export default function BasketPage() {
         />
       )}
 
+      {/* ── Checkout Address Modal ────────────────────────────────────────── */}
+      <CheckoutModal
+        isOpen={showCheckoutModal}
+        onClose={() => setShowCheckoutModal(false)}
+        orderTotal={cart.grand_total}
+        orderItems={cart.total_items}
+      />
+
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 pb-20">
-        <h1 className="text-[30px] sm:text-[34px] font-light text-gray-900 mb-8"
-          style={{ fontFamily: "Georgia,'Times New Roman',serif" }}>
+        <h1
+          className="text-[30px] sm:text-[34px] font-light text-gray-900 mb-8"
+          style={{ fontFamily: "Georgia,'Times New Roman',serif" }}
+        >
           Your basket
         </h1>
 
@@ -654,13 +657,13 @@ export default function BasketPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 xl:gap-8">
+
             {/* ── Left column ────────────────────────────────────────────── */}
             <div>
               <p className="text-[13px] text-gray-500 mb-4">
                 {cart.total_items} item{cart.total_items !== 1 ? 's' : ''} in your basket
               </p>
 
-              {/* Seller groups */}
               {cart.groups.map(group => (
                 <SellerGroupCard
                   key={group.seller_id}
@@ -671,7 +674,6 @@ export default function BasketPage() {
                 />
               ))}
 
-              {/* Add items under $30 */}
               {relatedProducts.length > 0 && (
                 <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-4 shadow-sm">
                   <h3 className="text-[15px] font-semibold text-gray-900 mb-1">
@@ -688,7 +690,6 @@ export default function BasketPage() {
                 </div>
               )}
 
-              {/* Climate */}
               <div className="flex items-center gap-2 py-4 px-1">
                 <Leaf size={18} className="text-green-600 shrink-0" />
                 <p className="text-[13px] text-gray-600">
@@ -697,7 +698,6 @@ export default function BasketPage() {
                 </p>
               </div>
 
-              {/* Related items you may like */}
               {moreRelated.length > 0 && (
                 <div className="mt-4">
                   <h3 className="text-[18px] font-medium text-gray-900 mb-1">
@@ -715,7 +715,7 @@ export default function BasketPage() {
               )}
             </div>
 
-            {/* ── Right column: order summary ─────────────────────────── */}
+            {/* ── Right column: order summary ─────────────────────────────── */}
             <OrderSummaryPanel cart={cart} onCheckout={handleCheckout} />
           </div>
         )}
