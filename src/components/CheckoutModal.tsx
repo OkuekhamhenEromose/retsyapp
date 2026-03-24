@@ -1,3 +1,5 @@
+// CheckoutModal.tsx - Fixed version with proper error handling
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -54,6 +56,7 @@ interface CheckoutModalProps {
   onClose: () => void;
   orderTotal: number;
   orderItems?: number;
+  cartId?: string | number | null;  
 }
 
 type Step = 'delivery' | 'payment' | 'review';
@@ -177,7 +180,7 @@ const InputField: React.FC<InputFieldProps> = ({
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 
 const CheckoutModal: React.FC<CheckoutModalProps> = ({
-  isOpen, onClose, orderTotal, orderItems = 1
+  isOpen, onClose, orderTotal, orderItems = 1, cartId
 }) => {
   const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -258,63 +261,114 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     return {};
   };
 
-  const handleContinue = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    setErrors({});
+  // In CheckoutModal.tsx, update the handleContinue function with better error logging:
 
-    try {
-      const payload = {
-        address: {
-          full_name:          form.full_name,
-          country:            form.country,
-          street_address:     form.street_address,
-          apartment:          form.apartment || undefined,
-          city:               form.city,
-          state:              form.state  || undefined,
-          postal_code:        form.postal_code || undefined,
-          phone_country_code: form.phone_country_code,
-          phone_number:       form.phone_number,
-          email:              form.email,
-          save_as_default:    form.save_as_default,
-        },
-        payment_method: 'paystack',
-      };
+const handleContinue = async () => {
+  if (!validate()) return;
+  setLoading(true);
+  setErrors({});
 
-      const res = await fetch(`${API}/checkout/initiate/`, {
-        method:      'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify(payload),
-      });
+  try {
+    // Format the payload exactly as the backend expects
+    const payload = {
+      address: {
+        full_name: form.full_name,
+        country: form.country,
+        street_address: form.street_address,
+        apartment: form.apartment || '',
+        city: form.city,
+        state: form.state || '',
+        postal_code: form.postal_code || '',
+        phone_country_code: form.phone_country_code,
+        phone_number: form.phone_number,
+        email: form.email,
+        save_as_default: form.save_as_default
+      },
+      payment_method: 'paystack',
+      cart_id: cartId
+    };
 
-      const data = await res.json();
+    console.log('[CheckoutModal] Sending payload:', JSON.stringify(payload, null, 2));
 
-      if (!res.ok) {
-        const msg =
-          data?.address?.full_name?.[0]   ||
-          data?.address?.phone_number?.[0] ||
-          data?.address?.email?.[0]        ||
-          data?.error || data?.detail      ||
-          'Something went wrong. Please try again.';
-        setErrors({ global: msg });
-        return;
-      }
+    const res = await fetch(`${API}/checkout/initiate/`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(payload),
+    });
 
-      if (data.payment_url) {
-        window.location.href = data.payment_url;
-      } else {
-        window.location.href = `/order/${data.order_id}/summary/`;
-      }
-    } catch (err) {
-      setErrors({ global: 'Network error. Please check your connection and try again.' });
-    } finally {
-      setLoading(false);
+    console.log('[CheckoutModal] Response status:', res.status);
+    
+    // Try to get the error details
+    let data;
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await res.json();
+      console.log('[CheckoutModal] Response data:', data);
+    } else {
+      const text = await res.text();
+      console.log('[CheckoutModal] Raw response:', text);
+      data = { error: text };
     }
-  };
+
+    if (!res.ok) {
+      // Extract error messages from the response
+      let errorMsg = 'Something went wrong. Please try again.';
+      
+      if (data.address) {
+        // Handle field-specific errors
+        const fieldErrors = [];
+        if (data.address.full_name) fieldErrors.push(`Full name: ${data.address.full_name[0]}`);
+        if (data.address.phone_number) fieldErrors.push(`Phone: ${data.address.phone_number[0]}`);
+        if (data.address.email) fieldErrors.push(`Email: ${data.address.email[0]}`);
+        if (data.address.state) fieldErrors.push(`State: ${data.address.state[0]}`);
+        if (data.address.city) fieldErrors.push(`City: ${data.address.city[0]}`);
+        if (data.address.street_address) fieldErrors.push(`Street address: ${data.address.street_address[0]}`);
+        if (data.address.country) fieldErrors.push(`Country: ${data.address.country[0]}`);
+        if (fieldErrors.length) {
+          errorMsg = fieldErrors.join(', ');
+        } else {
+          errorMsg = JSON.stringify(data.address);
+        }
+      } else if (data.error) {
+        errorMsg = data.error;
+      } else if (data.detail) {
+        errorMsg = data.detail;
+      } else if (data.message) {
+        errorMsg = data.message;
+      } else if (data.non_field_errors) {
+        errorMsg = data.non_field_errors.join(', ');
+      } else if (typeof data === 'string') {
+        errorMsg = data;
+      }
+      
+      console.error('[CheckoutModal] Error details:', errorMsg);
+      setErrors({ global: errorMsg });
+      return;
+    }
+
+    // Store the order data in sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('checkout_address', JSON.stringify({
+        ...form,
+        order_id: data.order_id,
+        order_number: data.order_number
+      }));
+    }
+
+    // Redirect to order summary page
+    window.location.href = `/order/${data.order_id}/summary/`;
+    
+  } catch (err) {
+    console.error('[CheckoutModal] Network error:', err);
+    setErrors({ global: 'Network error. Please check your connection and try again.' });
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!isOpen) return null;
 
@@ -534,7 +588,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     Processing…
                   </>
                 ) : (
-                  'Continue to Payment'
+                  'Continue to Summary'
                 )}
               </button>
             </div>
