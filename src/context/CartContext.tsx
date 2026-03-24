@@ -1,4 +1,4 @@
-// CartContext.tsx - FIXED VERSION
+// CartContext.tsx - COMPLETELY UPDATED with cart ID tracking
 
 'use client';
 
@@ -6,14 +6,96 @@ import React, {
   createContext, useContext, useState, useEffect, useCallback, useRef,
 } from 'react';
 
-// ... keep all your existing types (CartItemPersonalization, CartItem, CartGroup, CartSummary, AddToCartPayload) ...
+// ─── Types ────────────────────────────────────────────────────────────────────
+export interface CartItemPersonalization {
+  field_name: string;
+  value: string;
+}
+
+export interface CartItem {
+  client_id:           string;
+  id:                  number | null;
+  product_id:          number;
+  product_name:        string;
+  product_slug:        string;
+  product_image:       string;
+  quantity:            number;
+  price_per_unit:      number;
+  original_price:      number | null;
+  discount_percentage: number;
+  subtotal:            number;
+  total_savings:       number;
+  variant_id:          number | null;
+  variant_color:       string;
+  variant_design:      string;
+  variant_color_code:  string;
+  seller_id:           number;
+  seller_name:         string;
+  seller_rating:       number;
+  seller_review_count: number;
+  personalizations:    CartItemPersonalization[];
+  added_at:            string;
+  sale_ends_in?:       { hours: number; minutes: number; seconds: number } | null;
+}
+
+export interface CartGroup {
+  seller_id:          number;
+  seller_name:        string;
+  seller_rating:      number;
+  seller_review_count: number;
+  items:              CartItem[];
+  subtotal:           number;
+  shipping_cost:      number;
+  estimated_delivery: { min: number; max: number; display: string };
+  is_gift:            boolean;
+}
+
+export interface CartSummary {
+  groups:             CartGroup[];
+  total_items:        number;
+  subtotal:           number;
+  total_discount:     number;
+  total_shipping:     number;
+  grand_total:        number;
+  applied_discounts:  { code: string; amount: number; description: string }[];
+  cart_id?:           number | null;  // Add cart_id
+}
+
+export interface AddToCartPayload {
+  product_id:          number;
+  product_name:        string;
+  product_slug:        string;
+  product_image:       string;
+  price_per_unit:      number;
+  original_price?:     number | null;
+  discount_percentage?: number;
+  quantity?:           number;
+  variant_id?:         number | null;
+  variant_color?:      string;
+  variant_design?:     string;
+  variant_color_code?: string;
+  seller_id?:          number;
+  seller_name?:        string;
+  seller_rating?:      number;
+  seller_review_count?: number;
+  personalizations?:   CartItemPersonalization[];
+}
+
+interface CartContextValue {
+  cart:           CartSummary;
+  loading:        boolean;
+  addToCart:      (p: AddToCartPayload) => Promise<{ success: boolean; error?: string }>;
+  removeItem:     (clientId: string)   => Promise<void>;
+  updateQuantity: (clientId: string, qty: number) => Promise<void>;
+  refreshCart:    ()                   => Promise<void>;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function buildSummary(items: CartItem[]): CartSummary {
+function buildSummary(items: CartItem[], cartId?: number | null): CartSummary {
   const bySellerMap = new Map<number, CartGroup>();
   for (const item of items) {
     const sid = item.seller_id ?? 0;
@@ -47,22 +129,48 @@ function buildSummary(items: CartItem[]): CartSummary {
     total_shipping,
     grand_total:      salePrice + total_shipping,
     applied_discounts: [],
+    cart_id:          cartId,  // Add cart_id to summary
   };
 }
 
-// ── localStorage ──────────────────────────────────────────────────────────────
+// ── localStorage helpers ──────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'etsy_cart_v2';
+const CART_ID_KEY = 'etsy_cart_id';
+
 function loadStored(): CartItem[] {
   if (typeof window === 'undefined') return [];
-  try { 
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored) as CartItem[];
-    // Ensure all items have valid structure
-    return parsed.filter(item => item && item.product_id);
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch (e) {
+    console.error('[CartContext] Failed to load stored items', e);
   }
-  catch { return []; }
+  return [];
 }
+
+function loadCartId(): number | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(CART_ID_KEY);
+    if (stored) {
+      const id = parseInt(stored, 10);
+      return isNaN(id) ? null : id;
+    }
+  } catch { }
+  return null;
+}
+
+function persistCartId(cartId: number | null) {
+  if (typeof window === 'undefined') return;
+  if (cartId) {
+    localStorage.setItem(CART_ID_KEY, String(cartId));
+  } else {
+    localStorage.removeItem(CART_ID_KEY);
+  }
+}
+
 function persist(items: CartItem[]) {
   if (typeof window === 'undefined') return;
   try { 
@@ -82,7 +190,6 @@ function getCsrf(): string {
 // ── Fetch wrapper with JWT token ─────────────────────────────────────────────
 async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
   const csrf = getCsrf();
-  // Get JWT token from localStorage
   const accessToken = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
   
   const headers: HeadersInit = {
@@ -106,6 +213,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [serverEnabled, setServerEnabled] = useState(true);
+  // Initialize cartId from localStorage
+  const [cartId, setCartId] = useState<number | null>(() => loadCartId());  
   const initialLoadDone = useRef(false);
 
   const API = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api').replace(/\/$/, '');
@@ -128,7 +237,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items]);
 
-  // ── 3. Background sync with server (runs after initial load) ───────────────
+  // ── 3. Save cartId to localStorage whenever it changes ─────────────────────
+  useEffect(() => {
+    persistCartId(cartId);
+  }, [cartId]);
+
+  // ── 4. Background sync with server (runs after initial load) ───────────────
   const syncWithServer = useCallback(async () => {
     if (!serverEnabled) return;
     
@@ -155,6 +269,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       
       const data = await res.json();
       console.log('[CartContext] Server response:', data);
+      
+      // Store cart ID from server
+      if (data.id) {
+        console.log('[CartContext] Setting cart ID from server:', data.id);
+        setCartId(data.id);
+      }
       
       const serverItems: CartItem[] = [];
       for (const g of (data.groups ?? [])) {
@@ -196,7 +316,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 si.variant_id === localItem.variant_id
         );
         if (!exists && localItem.id === null) {
-          // Local item not on server - keep it
           mergedItems.push(localItem);
         }
       }
@@ -295,7 +414,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           console.log('[CartContext] Server response status:', res.status);
           
           if (res.ok) {
-            // Refresh to get server IDs
+            const data = await res.json();
+            // Store cart ID from add response
+            if (data.cart?.id) {
+              console.log('[CartContext] Setting cart ID from add response:', data.cart.id);
+              setCartId(data.cart.id);
+            }
             await syncWithServer();
           } else if (res.status === 404) {
             console.warn('[CartContext] Cart endpoint not found, disabling server sync');
@@ -351,7 +475,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [API, items, removeItem, serverEnabled]);
 
-  const cart = buildSummary(items);
+  // Build cart summary with cart_id
+  const cart = buildSummary(items, cartId);
 
   return (
     <CartContext.Provider
