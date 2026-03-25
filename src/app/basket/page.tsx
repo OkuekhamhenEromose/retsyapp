@@ -954,13 +954,38 @@ export default function BasketPage() {
     console.log("[BasketPage] No cart ID found");
     return null;
   };
-  // Also add logging when opening the modal
-  const openCheckoutModal = () => {
-    if (cart.total_items === 0) return;
-    const cartId = getCartId();
-    console.log("[BasketPage] Opening checkout modal with cartId:", cartId);
-    setShowCheckoutModal(true);
-  };
+
+const openCheckoutModal = async () => {
+  if (cart.total_items === 0) return;
+  
+  // If we have a negative cart ID (temp), force a sync to get a real one
+  if (cart.cart_id && cart.cart_id < 0) {
+    console.log('[BasketPage] Using temp cart ID, forcing sync to get real ID...');
+    
+    // Show loading state (you might want to add a loading indicator)
+    setPageLoading(true);
+    
+    try {
+      await refreshCart(); // This should now create the cart
+      // Wait a bit for the state to update
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // If still negative after refresh, show error
+      if (cart.cart_id && cart.cart_id < 0) {
+        console.error('[BasketPage] Still have negative cart ID after sync');
+        alert('Unable to create cart. Please try again.');
+        setPageLoading(false);
+        return;
+      }
+    } finally {
+      setPageLoading(false);
+    }
+  }
+  
+  const finalCartId = cart.cart_id;
+  console.log('[BasketPage] Opening checkout modal with cartId:', finalCartId);
+  setShowCheckoutModal(true);
+};
 
   // ── Loading skeleton ──────────────────────────────────────────────────────
   if (pageLoading) {
@@ -1014,6 +1039,11 @@ export default function BasketPage() {
         orderTotal={cart.grand_total}
         orderItems={cart.total_items}
         cartId={cart.cart_id}
+        onBeforeCheckout={async () => {
+          if (cart.cart_id && cart.cart_id < 0) {
+            await refreshCart();
+          }
+        }}
       />
 
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 py-8 pb-20">

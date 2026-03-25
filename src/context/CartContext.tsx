@@ -1,4 +1,4 @@
-// CartContext.tsx - COMPLETELY UPDATED with cart ID tracking
+// CartContext.tsx - COMPLETELY UPDATED with cart ID tracking and cart creation
 
 'use client';
 
@@ -58,7 +58,7 @@ export interface CartSummary {
   total_shipping:     number;
   grand_total:        number;
   applied_discounts:  { code: string; amount: number; description: string }[];
-  cart_id?:           number | null;  // Add cart_id
+  cart_id?:           number | null;
 }
 
 export interface AddToCartPayload {
@@ -95,6 +95,54 @@ function uid() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function generateTempCartId(): number {
+  return -Math.floor(Date.now() / 1000);
+}
+
+async function createRealCartOnServer(items: CartItem[]): Promise<number | null> {
+  if (items.length === 0) return null;
+  
+  const API = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api').replace(/\/$/, '');
+  const accessToken = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  try {
+    const firstItem = items[0];
+    console.log('[CartContext] Creating cart with item:', firstItem.product_slug);
+    
+    const response = await fetch(`${API}/cart/add-enhanced/${firstItem.product_slug}/`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify({
+        quantity: firstItem.quantity,
+        variant_id: firstItem.variant_id ?? undefined,
+        personalizations: firstItem.personalizations
+      }),
+    });
+    
+    if (!response.ok) {
+      console.error('[CartContext] Failed to create cart:', response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    const newCartId = data.cart?.id || data.id;
+    
+    if (newCartId) {
+      console.log('[CartContext] Successfully created cart with ID:', newCartId);
+      return newCartId;
+    }
+    
+    return null;
+  } catch (err) {
+    console.error('[CartContext] Error creating cart:', err);
+    return null;
+  }
+}
+
 function buildSummary(items: CartItem[], cartId?: number | null): CartSummary {
   const bySellerMap = new Map<number, CartGroup>();
   for (const item of items) {
@@ -129,7 +177,7 @@ function buildSummary(items: CartItem[], cartId?: number | null): CartSummary {
     total_shipping,
     grand_total:      salePrice + total_shipping,
     applied_discounts: [],
-    cart_id:          cartId,  // Add cart_id to summary
+    cart_id:          cartId,
   };
 }
 
@@ -213,13 +261,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [serverEnabled, setServerEnabled] = useState(true);
-  // Initialize cartId from localStorage
   const [cartId, setCartId] = useState<number | null>(() => loadCartId());  
   const initialLoadDone = useRef(false);
 
   const API = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api').replace(/\/$/, '');
 
-  // ── 1. Load from localStorage on mount (immediate, no server wait) ────────
+  // ── 1. Load from localStorage on mount ─────────────────────────────────────
   useEffect(() => {
     const stored = loadStored();
     console.log('[CartContext] Loaded from localStorage:', stored.length, 'items');
@@ -242,7 +289,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     persistCartId(cartId);
   }, [cartId]);
 
-  // ── 4. Background sync with server (runs after initial load) ───────────────
+  // ── 4. Background sync with server ─────────────────────────────────────────
   const syncWithServer = useCallback(async () => {
     if (!serverEnabled) return;
     
@@ -251,7 +298,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const res = await apiFetch(`${API}/cart/enhanced/`);
       
       if (res.status === 404) {
-        console.warn('[CartContext] /cart/enhanced/ not found (404) - server may not have cart endpoints');
+        console.warn('[CartContext] /cart/enhanced/ not found (404)');
         setServerEnabled(false);
         return;
       }
@@ -270,64 +317,96 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       console.log('[CartContext] Server response:', data);
       
-      // Store cart ID from server
-      if (data.id) {
-        console.log('[CartContext] Setting cart ID from server:', data.id);
-        setCartId(data.id);
+      // Store cart ID from server - check for positive ID
+      let serverCartId = null;
+      if (data.id && data.id > 0) {
+        serverCartId = data.id;
+      } else if (data.cart_id && data.cart_id > 0) {
+        serverCartId = data.cart_id;
       }
       
+      if (serverCartId) {
+        console.log('[CartContext] Setting cart ID from server:', serverCartId);
+        setCartId(serverCartId);
+        persistCartId(serverCartId);
+      } else if (items.length > 0 && (!cartId || cartId < 0)) {
+        console.log('[CartContext] Server cart empty, will create on next refresh');
+      }
+      
+      // Parse server items
       const serverItems: CartItem[] = [];
-      for (const g of (data.groups ?? [])) {
-        for (const si of (g.items ?? [])) {
-          serverItems.push({
-            client_id:           si.id?.toString() ?? uid(),
-            id:                  si.id ?? null,
-            product_id:          si.product ?? 0,
-            product_name:        si.product_name ?? '',
-            product_slug:        si.product_slug ?? '',
-            product_image:       si.product_image ?? '',
-            quantity:            si.quantity ?? 1,
-            price_per_unit:      parseFloat(si.price_per_unit) || 0,
-            original_price:      si.original_price ? parseFloat(si.original_price) : null,
-            discount_percentage: si.discount_percentage ?? 0,
-            subtotal:            parseFloat(si.subtotal) || 0,
-            total_savings:       parseFloat(si.total_savings) || 0,
-            variant_id:          si.variant ?? null,
-            variant_color:       si.variant_color ?? '',
-            variant_design:      si.variant_design ?? '',
-            variant_color_code:  si.variant_color_code ?? '',
-            seller_id:           g.seller_id ?? 0,
-            seller_name:         g.seller_name ?? '',
-            seller_rating:       g.seller_rating ?? 0,
-            seller_review_count: g.seller_review_count ?? 0,
-            personalizations:    si.personalizations ?? [],
-            added_at:            si.added_at ?? new Date().toISOString(),
-            sale_ends_in: si.discount_percentage > 0
-              ? { hours: 20, minutes: 11, seconds: 15 } : null,
-          });
+      if (data.groups && Array.isArray(data.groups)) {
+        for (const g of data.groups) {
+          for (const si of (g.items ?? [])) {
+            serverItems.push({
+              client_id:           si.id?.toString() ?? uid(),
+              id:                  si.id ?? null,
+              product_id:          si.product ?? 0,
+              product_name:        si.product_name ?? '',
+              product_slug:        si.product_slug ?? '',
+              product_image:       si.product_image ?? si.image_url ?? '',
+              quantity:            si.quantity ?? 1,
+              price_per_unit:      parseFloat(si.price_per_unit) || 0,
+              original_price:      si.original_price ? parseFloat(si.original_price) : null,
+              discount_percentage: si.discount_percentage ?? 0,
+              subtotal:            parseFloat(si.subtotal) || 0,
+              total_savings:       parseFloat(si.total_savings) || 0,
+              variant_id:          si.variant ?? null,
+              variant_color:       si.variant_color ?? '',
+              variant_design:      si.variant_design ?? '',
+              variant_color_code:  si.variant_color_code ?? '',
+              seller_id:           g.seller_id ?? 0,
+              seller_name:         g.seller_name ?? '',
+              seller_rating:       g.seller_rating ?? 0,
+              seller_review_count: g.seller_review_count ?? 0,
+              personalizations:    si.personalizations ?? [],
+              added_at:            si.added_at ?? new Date().toISOString(),
+              sale_ends_in: si.discount_percentage > 0
+                ? { hours: 20, minutes: 11, seconds: 15 } : null,
+            });
+          }
         }
       }
       
-      // Merge: server items take precedence, but keep local items that aren't on server
-      const mergedItems = [...serverItems];
-      for (const localItem of items) {
-        const exists = mergedItems.some(
-          si => si.product_slug === localItem.product_slug && 
-                si.variant_id === localItem.variant_id
-        );
-        if (!exists && localItem.id === null) {
-          mergedItems.push(localItem);
-        }
+      // If server has items, use them; otherwise keep local items
+      if (serverItems.length > 0) {
+        console.log('[CartContext] Using server items:', serverItems.length);
+        setItems(serverItems);
       }
       
-      if (mergedItems.length !== items.length) {
-        console.log('[CartContext] Synced with server, updated items:', mergedItems.length);
-        setItems(mergedItems);
-      }
     } catch (err) {
       console.warn('[CartContext] Server sync network error:', err);
+      if (items.length > 0 && (!cartId || cartId < 0)) {
+        const tempId = generateTempCartId();
+        console.log('[CartContext] Server unavailable, using temp cart ID:', tempId);
+        setCartId(tempId);
+      }
     }
-  }, [API, serverEnabled, items]);
+  }, [API, serverEnabled, items, cartId]);
+
+  // ── refreshCart - creates a real cart if needed ─────────────────────────────
+  const refreshCart = useCallback(async () => {
+    setLoading(true);
+    try {
+      // First try to sync with server
+      await syncWithServer();
+      
+      // If we still have a negative cart ID but have items, create a real cart
+      if (cartId && cartId < 0 && items.length > 0) {
+        console.log('[CartContext] Negative cart ID detected, creating real cart on server...');
+        const realCartId = await createRealCartOnServer(items);
+        if (realCartId) {
+          console.log('[CartContext] Created real cart ID:', realCartId);
+          setCartId(realCartId);
+          persistCartId(realCartId);
+          // Sync again to get the updated cart
+          await syncWithServer();
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [syncWithServer, cartId, items]);
 
   // ── Run sync after initial load ────────────────────────────────────────────
   useEffect(() => {
@@ -336,15 +415,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [syncWithServer]);
 
-  // ── refreshCart - public method to force sync ──────────────────────────────
-  const refreshCart = useCallback(async () => {
-    setLoading(true);
-    try {
-      await syncWithServer();
-    } finally {
-      setLoading(false);
+  // ── Create real cart when we have items but negative cart ID ────────────────
+  useEffect(() => {
+    const hasNegativeCartId = cartId && cartId < 0;
+    const hasItems = items.length > 0;
+    
+    if (hasNegativeCartId && hasItems && initialLoadDone.current && serverEnabled) {
+      console.log('[CartContext] Need to create real cart, triggering refresh...');
+      refreshCart();
     }
-  }, [syncWithServer]);
+  }, [cartId, items, serverEnabled, refreshCart]);
 
   // ── addToCart (optimistic) ─────────────────────────────────────────────────
   const addToCart = useCallback(async (
@@ -390,15 +470,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const existIdx = prev.findIndex(
         i => i.product_slug === product_slug && i.variant_id === variant_id,
       );
+      let newItems;
       if (existIdx >= 0) {
-        return prev.map((item, idx) =>
+        newItems = prev.map((item, idx) =>
           idx === existIdx
             ? { ...item, quantity: item.quantity + quantity,
                 subtotal: item.price_per_unit * (item.quantity + quantity) }
             : item,
         );
+      } else {
+        newItems = [...prev, newItem];
       }
-      return [...prev, newItem];
+      return newItems;
     });
 
     // Background sync to server
@@ -415,11 +498,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           
           if (res.ok) {
             const data = await res.json();
-            // Store cart ID from add response
+            console.log('[CartContext] Add to cart response:', data);
+            
+            let newCartId = null;
             if (data.cart?.id) {
-              console.log('[CartContext] Setting cart ID from add response:', data.cart.id);
-              setCartId(data.cart.id);
+              newCartId = data.cart.id;
+            } else if (data.id) {
+              newCartId = data.id;
+            } else if (data.cart_id) {
+              newCartId = data.cart_id;
             }
+            
+            if (newCartId) {
+              console.log('[CartContext] Setting cart ID from add response:', newCartId);
+              setCartId(newCartId);
+              persistCartId(newCartId);
+            }
+            
             await syncWithServer();
           } else if (res.status === 404) {
             console.warn('[CartContext] Cart endpoint not found, disabling server sync');

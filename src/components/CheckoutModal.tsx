@@ -56,7 +56,8 @@ interface CheckoutModalProps {
   onClose: () => void;
   orderTotal: number;
   orderItems?: number;
-  cartId?: string | number | null;  
+  cartId?: string | number | null;
+  onBeforeCheckout?: () => Promise<void>;  
 }
 
 type Step = 'delivery' | 'payment' | 'review';
