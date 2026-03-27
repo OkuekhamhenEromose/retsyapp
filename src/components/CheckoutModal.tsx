@@ -300,95 +300,100 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     return true;
   };
 
-  const handleContinue = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    setErrors({});
+  // In CheckoutModal.tsx, update the handleContinue function:
 
-    try {
-      // 1. Let parent refresh/create server cart if needed
-      if (onBeforeCheckout) {
-        setSyncMsg('Preparing your basket…');
-        await onBeforeCheckout();
-      }
+const handleContinue = async () => {
+  if (!validate()) return;
+  setLoading(true);
+  setErrors({});
 
-      // 2. Resolve a positive cart_id
-      let resolvedCartId: number | null = (cartId && cartId > 0) ? cartId : null;
-      if (!resolvedCartId && cartItems.length > 0) {
-        resolvedCartId = await syncCartToServer();
-      }
-
-      // 3. Build local_items payload as backend fallback
-      //    (used when server cart is empty because products aren't in DB yet)
-      const localItems = cartItems.map(item => ({
-        product_slug:        item.product_slug,
-        product_name:        item.product_name,
-        quantity:            item.quantity,
-        price_per_unit:      item.price_per_unit,
-        original_price:      item.original_price ?? null,
-        discount_percentage: item.discount_percentage,
-        variant_id:          item.variant_id ?? null,
-        variant_color:       item.variant_color ?? '',
-        seller_id:           item.seller_id ?? 0,
-        seller_name:         item.seller_name ?? '',
-        personalizations:    item.personalizations ?? [],
-      }));
-
-      const payload = {
-        address: {
-          full_name:          form.full_name,
-          country:            form.country,
-          street_address:     form.street_address,
-          apartment:          form.apartment || undefined,
-          city:               form.city,
-          state:              form.state  || undefined,
-          postal_code:        form.postal_code || undefined,
-          phone_country_code: form.phone_country_code,
-          phone_number:       form.phone_number,
-          email:              form.email,
-          save_as_default:    form.save_as_default,
-        },
-        payment_method: 'paystack',
-        cart_id:        resolvedCartId,
-        local_items:    localItems.length > 0 ? localItems : undefined,
-      };
-
-      console.log('[CheckoutModal] Sending payload:', JSON.stringify(payload, null, 2));
-      setSyncMsg(null);
-
-      const res = await fetch(`${API}/checkout/initiate/`, {
-        method: 'POST', credentials: 'include',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      console.log('[CheckoutModal] Response status:', res.status);
-      console.log('[CheckoutModal] Response data:', data);
-
-      if (!res.ok) {
-        const msg =
-          data?.address?.full_name?.[0] || data?.address?.phone_number?.[0] ||
-          data?.address?.email?.[0]     || data?.error || data?.detail ||
-          'Something went wrong. Please try again.';
-        console.error('[CheckoutModal] Error details:', msg);
-        setErrors({ global: msg });
-        return;
-      }
-
-      if (data.payment_url) {
-        window.location.href = data.payment_url;
-      } else if (data.order_id) {
-        window.location.href = `/order/summary?order_id=${data.order_id}`;
-      }
-    } catch (err) {
-      console.error('[CheckoutModal] Network error:', err);
-      setErrors({ global: 'Network error. Please check your connection and try again.' });
-    } finally {
-      setLoading(false);
-      setSyncMsg(null);
+  try {
+    // 1. Let parent refresh/create server cart if needed
+    if (onBeforeCheckout) {
+      setSyncMsg('Preparing your basket…');
+      await onBeforeCheckout();
     }
-  };
+
+    // 2. Resolve a positive cart_id
+    let resolvedCartId: number | null = (cartId && cartId > 0) ? cartId : null;
+    if (!resolvedCartId && cartItems.length > 0) {
+      resolvedCartId = await syncCartToServer();
+    }
+
+    // 3. Build local_items payload as backend fallback
+    const localItems = cartItems.map(item => ({
+      product_slug:        item.product_slug,
+      product_name:        item.product_name,
+      quantity:            item.quantity,
+      price_per_unit:      item.price_per_unit,
+      original_price:      item.original_price ?? null,
+      discount_percentage: item.discount_percentage,
+      variant_id:          item.variant_id ?? null,
+      variant_color:       item.variant_color ?? '',
+      seller_id:           item.seller_id ?? 0,
+      seller_name:         item.seller_name ?? '',
+      personalizations:    item.personalizations ?? [],
+    }));
+
+    const payload = {
+      address: {
+        full_name:          form.full_name,
+        country:            form.country,
+        street_address:     form.street_address,
+        apartment:          form.apartment || undefined,
+        city:               form.city,
+        state:              form.state  || undefined,
+        postal_code:        form.postal_code || undefined,
+        phone_country_code: form.phone_country_code,
+        phone_number:       form.phone_number,
+        email:              form.email,
+        save_as_default:    form.save_as_default,
+      },
+      payment_method: 'paystack',
+      cart_id:        resolvedCartId,
+      local_items:    localItems.length > 0 ? localItems : undefined,
+    };
+
+    console.log('[CheckoutModal] Sending payload:', JSON.stringify(payload, null, 2));
+    setSyncMsg(null);
+
+    const res = await fetch(`${API}/checkout/initiate/`, {
+      method: 'POST', 
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json', ...getAuthHeader() },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    console.log('[CheckoutModal] Response status:', res.status);
+    console.log('[CheckoutModal] Response data:', data);
+
+    if (!res.ok) {
+      const msg =
+        data?.address?.full_name?.[0] || data?.address?.phone_number?.[0] ||
+        data?.address?.email?.[0]     || data?.error || data?.detail ||
+        'Something went wrong. Please try again.';
+      console.error('[CheckoutModal] Error details:', msg);
+      setErrors({ global: msg });
+      return;
+    }
+
+    // For testing: redirect to order summary page directly instead of Paystack
+    if (data.order_id) {
+      window.location.href = `/order/summary?order_id=${data.order_id}`;
+    } else if (data.payment_url) {
+      // In production, this would redirect to Paystack
+      window.location.href = data.payment_url;
+    }
+    
+  } catch (err) {
+    console.error('[CheckoutModal] Network error:', err);
+    setErrors({ global: 'Network error. Please check your connection and try again.' });
+  } finally {
+    setLoading(false);
+    setSyncMsg(null);
+  }
+};
 
   if (!isOpen) return null;
 
@@ -536,7 +541,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     : 'bg-gray-900 hover:bg-[#F1641E] hover:shadow-orange-200 hover:shadow-lg active:scale-[0.98]'
                 }`}
               >
-                {loading ? <><Loader2 size={16} className="animate-spin" /> Processing…</> : 'Continue to Payment'}
+                {loading ? <><Loader2 size={16} className="animate-spin" /> Processing…</> : 'Confirm Order'}
               </button>
             </div>
           </div>
